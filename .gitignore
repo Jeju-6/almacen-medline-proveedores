@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+almacen.db
+ngrok.exe
+config_db.py
