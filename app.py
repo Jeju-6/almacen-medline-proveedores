@@ -683,7 +683,7 @@ def estadisticas():
         ''').fetchall()
 
         consumo_mensual = db.execute('''
-            SELECT strftime('%m/%Y', fecha_hora) as mes,
+            SELECT to_char(fecha_hora, 'MM/YYYY') as mes,
                    SUM(CASE WHEN tipo='SALIDA' THEN cantidad ELSE 0 END) as salidas,
                    SUM(CASE WHEN tipo='ENTRADA' THEN cantidad ELSE 0 END) as entradas
             FROM movimientos
@@ -711,7 +711,7 @@ def estadisticas():
         ''', (id_proveedor,)).fetchall()
 
         consumo_mensual = db.execute('''
-            SELECT strftime('%m/%Y', fecha_hora) as mes,
+            SELECT to_char(fecha_hora, 'MM/YYYY') as mes,
                    SUM(CASE WHEN tipo='SALIDA' THEN cantidad ELSE 0 END) as salidas,
                    SUM(CASE WHEN tipo='ENTRADA' THEN cantidad ELSE 0 END) as entradas
             FROM movimientos m
