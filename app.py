@@ -5,7 +5,14 @@ from werkzeug.utils import secure_filename
 from database import init_db
 from datetime import datetime
 import os
-from config_db import DB_CONFIG
+
+DB_CONFIG = {
+    'host': os.environ.get('DB_HOST', 'aws-1-us-east-2.pooler.supabase.com'),
+    'port': int(os.environ.get('DB_PORT', 5432)),
+    'database': os.environ.get('DB_NAME', 'postgres'),
+    'user': os.environ.get('DB_USER', 'postgres.alvxqmzaiocvmdkjgpqh'),
+    'password': os.environ.get('DB_PASSWORD', '')
+}
 import psycopg2
 import psycopg2.extras
 
@@ -67,15 +74,16 @@ def get_db():
     return DBWrapper(conn)
 
 app = Flask(__name__)
-app.secret_key = 'medline-almacen-2024-clave-secreta'
+app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 
 # ─── CONFIGURACIÓN DE CORREO ──────────────────────────────────────────────────
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'almacen.medline.alertas@gmail.com'      # <-- cambia esto
-app.config['MAIL_PASSWORD'] = 'dqhubredptxbabur'    # <-- cambia esto
-app.config['MAIL_DEFAULT_SENDER'] = 'almacen.medline.alertas@gmail.com'
+app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
+app.config['MAIL_USERNAME'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
+app.config['MAIL_PASSWORD'] = os.environ.get('dqhubredptxbabur', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
 mail = Mail(app)
 
 @app.context_processor
