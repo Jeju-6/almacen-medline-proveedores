@@ -1,13 +1,18 @@
 import psycopg2
-from config_db import DB_CONFIG
+import os
 
-def get_db():
-    from app import get_db as app_get_db
-    return app_get_db()
+def get_db_config():
+    return {
+        'host': os.environ.get('DB_HOST', 'aws-1-us-east-2.pooler.supabase.com'),
+        'port': int(os.environ.get('DB_PORT', 5432)),
+        'database': os.environ.get('DB_NAME', 'postgres'),
+        'user': os.environ.get('DB_USER', 'postgres.alvxqmzaiocvmdkjgpqh'),
+        'password': os.environ.get('DB_PASSWORD', '')
+    }
 
 def init_db():
     try:
-        conn = psycopg2.connect(**DB_CONFIG)
+        conn = psycopg2.connect(**get_db_config())
         conn.close()
         print("Conexion a Supabase verificada.")
     except Exception as e:
