@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Almacén Medline{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root { --sidebar-width: 240px; --topbar-height: 56px; --brand-color: #0b4f6c; --brand-light: #1a7a9e; }
+    body { background-color: #f4f6f9; margin: 0; }
+
+    .sidebar {
+      min-height: 100vh; background-color: var(--brand-color);
+      width: var(--sidebar-width); position: fixed; top: 0; left: 0; z-index: 200;
+      padding-top: 20px; transition: transform 0.3s ease; display: flex; flex-direction: column;
+    }
+    .sidebar .brand {
+      color: #fff; font-size: 17px; font-weight: 700;
+      padding: 0 20px 16px; border-bottom: 1px solid var(--brand-light);
+      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+    }
+    .sidebar .nav-link {
+      color: #cce7f0; padding: 10px 20px; font-size: 14px;
+      display: flex; align-items: center; gap: 10px; border-radius: 0; transition: background 0.2s;
+    }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: var(--brand-light); color: #fff; }
+    .sidebar .nav-link i { font-size: 16px; min-width: 20px; }
+    .sidebar hr { border-color: var(--brand-light); margin: 8px 20px; }
+
+    .mobile-topbar {
+      display: none; position: fixed; top: 0; left: 0; right: 0;
+      height: var(--topbar-height); background: var(--brand-color);
+      z-index: 300; align-items: center; padding: 0 16px; gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .mobile-topbar .brand-text { color: #fff; font-weight: 700; font-size: 16px; flex: 1; }
+    .hamburger { background: none; border: none; color: #fff; font-size: 22px; padding: 4px; cursor: pointer; line-height: 1; }
+    .mobile-user { color: #cce7f0; font-size: 12px; text-align: right; }
+
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 199; }
+    .sidebar-overlay.active { display: block; }
+
+    .main-content { margin-left: var(--sidebar-width); padding: 24px; }
+    .topbar {
+      background: #fff; border-radius: 10px; padding: 12px 20px;
+      margin-bottom: 20px; display: flex; justify-content: space-between;
+      align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .card { border: none; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .badge-critico { background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 20px; font-size: 11px; }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); padding-top: 0; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar .brand { padding-top: 70px; }
+      .mobile-topbar { display: flex; }
+      .main-content { margin-left: 0; padding: 12px; padding-top: calc(var(--topbar-height) + 12px); }
+      .topbar { display: none; }
+      h4 { font-size: 18px !important; }
+      .table-responsive { font-size: 12px; }
+      .btn { font-size: 13px; }
+    }
+
+    /* MODO OSCURO - Paleta: 16213E / 0F3460 / 533483 / E94560 */
+    body.dark-mode {
+      background-color: #16213e !important;
+      color: #e8e8e8 !important;
+    }
+    body.dark-mode .sidebar {
+      background-color: #0f3460 !important;
+      border-right: 1px solid #533483;
+    }
+    body.dark-mode .sidebar .brand {
+      color: #fff !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .sidebar .nav-link { color: #c9d6df !important; }
+    body.dark-mode .sidebar .nav-link:hover,
+    body.dark-mode .sidebar .nav-link.active {
+      background-color: #533483 !important;
+      color: #fff !important;
+    }
+    body.dark-mode .sidebar hr { border-color: #533483 !important; }
+    body.dark-mode .mobile-topbar { background-color: #0f3460 !important; }
+    body.dark-mode .main-content { background-color: #16213e !important; }
+    body.dark-mode .topbar {
+      background-color: #0f3460 !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4) !important;
+    }
+    body.dark-mode .card {
+      background-color: #0f3460 !important;
+      color: #e8e8e8 !important;
+      border: 1px solid #533483 !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+    }
+    body.dark-mode .card-header {
+      background-color: #0f3460 !important;
+      border-color: #533483 !important;
+      color: #e8e8e8 !important;
+    }
+    body.dark-mode .table { color: #e8e8e8 !important; }
+    body.dark-mode .table-hover tbody tr:hover {
+      background-color: #533483 !important;
+      color: #fff !important;
+    }
+    body.dark-mode thead th {
+      background-color: #533483 !important;
+      color: #fff !important;
+      border-color: #0f3460 !important;
+    }
+    body.dark-mode td, body.dark-mode th {
+      border-color: #533483 !important;
+    }
+    body.dark-mode .form-control,
+    body.dark-mode .form-select {
+      background-color: #16213e !important;
+      color: #e8e8e8 !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .form-control:focus,
+    body.dark-mode .form-select:focus {
+      background-color: #16213e !important;
+      color: #e8e8e8 !important;
+      border-color: #e94560 !important;
+      box-shadow: 0 0 0 3px rgba(233,69,96,0.25) !important;
+    }
+    body.dark-mode .form-control::placeholder { color: #8899aa !important; }
+    body.dark-mode .form-text { color: #8899aa !important; }
+    body.dark-mode .form-label { color: #e8e8e8 !important; }
+    body.dark-mode .form-check-label { color: #e8e8e8 !important; }
+    body.dark-mode .input-group-text {
+      background-color: #16213e !important;
+      color: #c9d6df !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .alert {
+      background-color: #0f3460 !important;
+      border-color: #533483 !important;
+      color: #e8e8e8 !important;
+    }
+    body.dark-mode hr { border-color: #533483 !important; }
+    body.dark-mode code { color: #e94560 !important; }
+    body.dark-mode .btn-outline-secondary {
+      color: #c9d6df !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .btn-outline-secondary:hover {
+      background-color: #533483 !important;
+      color: #fff !important;
+    }
+    body.dark-mode .btn-outline-primary {
+      color: #c9d6df !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .btn-outline-primary:hover {
+      background-color: #533483 !important;
+      color: #fff !important;
+    }
+    body.dark-mode .btn-close { filter: invert(1) !important; }
+    body.dark-mode .progress { background-color: #16213e !important; }
+    body.dark-mode small, body.dark-mode .text-muted { color: #8899aa !important; }
+    body.dark-mode .badge-critico { background-color: #e94560 !important; }
+    body.dark-mode .form-check-input:not(:checked) {
+      background-color: #16213e !important;
+      border-color: #533483 !important;
+    }
+    body.dark-mode .dropdown-menu {
+      background-color: #0f3460 !important;
+      border-color: #533483 !important;
+    }
+    body, .card, .sidebar, .topbar, .mobile-topbar, input, select, textarea {
+      transition: background-color 0.3s ease, color 0.3s ease !important;
+    }
+  </style>
+
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#0b4f6c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Almacén Medline">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+  <script>
+    try { if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark-mode'); } catch(e) {}
+  </script>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="mobile-topbar">
+  <button class="hamburger" onclick="toggleSidebar()">
+    <i class="bi bi-list" id="hamburger-icon"></i>
+  </button>
+  <span class="brand-text"><i class="bi bi-box-seam"></i> Almacén Medline</span>
+  <div class="mobile-user">
+    <div>{{ session.nombre }}</div>
+    <div><span class="badge bg-secondary" style="font-size:10px;">{{ session.rol }}</span></div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="brand"><i class="bi bi-box-seam"></i> Almacén Medline</div>
+  <nav class="nav flex-column flex-grow-1">
+    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </a>
+    <a class="nav-link {% if request.endpoint == 'articulos' %}active{% endif %}" href="{{ url_for('articulos') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-archive"></i> Artículos
+    </a>
+    <a class="nav-link {% if request.endpoint == 'alertas' %}active{% endif %}" href="{{ url_for('alertas') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-bell"></i> Alertas
+      {% if alertas_count > 0 %}
+        <span style="background:#dc3545; color:#fff; border-radius:50%; width:18px; height:18px;
+                     display:inline-flex; align-items:center; justify-content:center;
+                     font-size:10px; font-weight:700; margin-left:4px;">
+          {{ alertas_count }}
+        </span>
+      {% endif %}
+    </a>
+    <a class="nav-link {% if request.endpoint == 'historial' %}active{% endif %}" href="{{ url_for('historial') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-clock-history"></i> Historial
+    </a>
+    <a class="nav-link {% if request.endpoint == 'estadisticas' %}active{% endif %}" href="{{ url_for('estadisticas') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-bar-chart-line"></i> Estadísticas
+    </a>
+    {% if session.rol == 'admin' %}
+    <a class="nav-link {% if request.endpoint == 'proveedores' %}active{% endif %}" href="{{ url_for('proveedores') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-people"></i> Proveedores
+    </a>
+    <a class="nav-link {% if request.endpoint == 'usuarios' %}active{% endif %}" href="{{ url_for('usuarios') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-person-gear"></i> Usuarios
+    </a>
+    <a class="nav-link {% if request.endpoint == 'exportar' %}active{% endif %}" href="{{ url_for('exportar') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-file-earmark-excel"></i> Exportar
+    </a>
+    <a class="nav-link {% if request.endpoint == 'importar' %}active{% endif %}" href="{{ url_for('importar') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-file-earmark-arrow-up"></i> Importar
+    </a>
+    {% endif %}
+    <a class="nav-link" href="{{ url_for('kiosco') }}" target="_blank">
+      <i class="bi bi-qr-code-scan"></i> Modo Kiosco
+    </a>
+    <hr>
+    {% if session.rol == 'admin' %}
+    <a class="nav-link {% if request.endpoint == 'configuracion' %}active{% endif %}" href="{{ url_for('configuracion') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-gear"></i> Configuración
+    </a>
+    {% endif %}
+    <a class="nav-link {% if request.endpoint == 'perfil' %}active{% endif %}" href="{{ url_for('perfil') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-person-circle"></i> Mi perfil
+    </a>
+    <a class="nav-link" href="{{ url_for('logout') }}" onclick="closeSidebarMobile()">
+      <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+    </a>
+  </nav>
+</div>
+
+<div class="main-content">
+  <div class="topbar">
+    <span style="font-weight:500; color:var(--brand-color);">
+      <i class="bi bi-person-circle"></i> {{ session.nombre }}
+      <span class="badge bg-secondary ms-2" style="font-size:11px;">{{ session.rol }}</span>
+    </span>
+    <form action="{{ url_for('buscar') }}" method="GET" style="display:flex; gap:8px; align-items:center;">
+      <div class="input-group input-group-sm" style="width:260px;">
+        <input type="text" name="q" class="form-control" placeholder="🔍 Buscar artículos, proveedores...">
+        <button type="submit" class="btn" style="background:#0b4f6c; color:#fff;">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </form>
+    <span style="font-size:13px; color:#888;">{{ now_str if now_str else '' }}</span>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const icon = document.getElementById('hamburger-icon');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+    icon.className = sidebar.classList.contains('open') ? 'bi bi-x-lg' : 'bi bi-list';
+  }
+  function closeSidebarMobile() {
+    if (window.innerWidth <= 768) {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const icon = document.getElementById('hamburger-icon');
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      icon.className = 'bi bi-list';
+    }
+  }
+  // Modo oscuro
+  try {
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+  } catch(e) {}
+</script>
+{% block extra_js %}{% endblock %}
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(() => console.log('SW registrado'))
+      .catch(err => console.log('SW error:', err));
+  }
+</script>
+</body>
+</html>

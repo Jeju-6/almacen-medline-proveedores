@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Importar SQL - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-database-up"></i> Importar base de datos SQL
+  </h4>
+  <a href="{{ url_for('importar') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Regresar
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:16px; font-size:15px;">
+        <i class="bi bi-upload"></i> Subir archivo SQL
+      </div>
+
+      <form method="POST" enctype="multipart/form-data">
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Archivo SQL <span class="text-danger">*</span></label>
+          <input type="file" name="archivo" class="form-control" accept=".sql" required>
+          <div class="form-text">Solo archivos .sql generados por este sistema o compatibles.</div>
+        </div>
+
+        <div style="background:#fff8e1; border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#fd7e14;"></i>
+          <strong>Importante:</strong> Se recomienda exportar un respaldo antes de importar.
+          Los datos existentes podrían modificarse.
+        </div>
+
+        <div style="background:#fef2f2; border-radius:8px; padding:12px; margin-bottom:20px; font-size:13px;">
+          <i class="bi bi-shield-exclamation" style="color:#dc3545;"></i>
+          <strong>Solo usa archivos SQL de confianza.</strong> Un archivo malicioso podría
+          dañar la base de datos.
+        </div>
+
+        <div class="d-flex gap-3">
+          <a href="{{ url_for('exportar_sql') }}"
+             class="btn btn-outline-success" style="padding:10px 20px;">
+            <i class="bi bi-download"></i> Respaldar primero
+          </a>
+          <button type="submit" class="btn" style="background:#0b4f6c; color:#fff; padding:10px 28px;">
+            <i class="bi bi-database-up"></i> Importar SQL
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card p-4 mb-3">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:12px; font-size:15px;">
+        <i class="bi bi-info-circle"></i> ¿Para qué sirve?
+      </div>
+      <div style="font-size:13px; color:#555; line-height:1.7;">
+        Esta función te permite restaurar una base de datos previamente exportada desde este sistema,
+        o migrar datos desde otro servidor SQL compatible.
+      </div>
+      <hr>
+      <div style="font-size:13px; color:#555;">
+        <div class="mb-2"><i class="bi bi-check-circle-fill" style="color:#198754;"></i> Restaurar un respaldo</div>
+        <div class="mb-2"><i class="bi bi-check-circle-fill" style="color:#198754;"></i> Migrar datos entre equipos</div>
+        <div class="mb-2"><i class="bi bi-check-circle-fill" style="color:#198754;"></i> Importar desde otro servidor</div>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:12px; font-size:15px;">
+        <i class="bi bi-lightning"></i> Accesos rápidos
+      </div>
+      <a href="{{ url_for('exportar_sql') }}"
+         class="btn btn-outline-success btn-sm" style="width:100%; margin-bottom:8px;">
+        <i class="bi bi-download"></i> Exportar SQL actual
+      </a>
+      <a href="{{ url_for('importar') }}"
+         class="btn btn-outline-primary btn-sm" style="width:100%;">
+        <i class="bi bi-file-earmark-arrow-up"></i> Importar desde Excel
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

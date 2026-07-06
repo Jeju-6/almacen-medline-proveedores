@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Proveedores - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-people"></i> Proveedores
+  </h4>
+  <a href="{{ url_for('nuevo_proveedor') }}" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+    <i class="bi bi-plus-lg"></i> Nuevo proveedor
+  </a>
+</div>
+
+<div class="row g-3">
+  {% for prov in proveedores %}
+  <div class="col-md-4">
+    <div class="card p-3">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        {% if prov.logo %}
+          <img src="{{ url_for('static', filename='uploads/' + prov.logo) }}"
+               style="width:52px; height:52px; object-fit:contain; border-radius:8px; border:1px solid #eee; padding:3px;">
+        {% else %}
+          <div style="width:52px; height:52px; background:#e8f4f8; border-radius:50%;
+                      display:flex; align-items:center; justify-content:center;">
+            <i class="bi bi-building" style="color:#0b4f6c; font-size:22px;"></i>
+          </div>
+        {% endif %}
+        <div>
+          <div style="font-weight:600; color:#0b4f6c;">{{ prov.nombre }}</div>
+          <div style="font-size:12px; color:#888;">{{ prov.area or 'Sin área' }}</div>
+        </div>
+      </div>
+      {% if prov.contacto %}
+      <div style="font-size:13px; color:#555; margin-bottom:10px;">
+        <i class="bi bi-person-lines-fill"></i> {{ prov.contacto }}
+      </div>
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-center mt-1">
+        <span class="badge bg-success">Activo</span>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('editar_proveedor', id_proveedor=prov.id_proveedor) }}"
+             class="btn btn-sm btn-outline-primary" style="font-size:12px;">
+            <i class="bi bi-pencil"></i> Editar
+          </a>
+          <a href="{{ url_for('desactivar_proveedor', id_proveedor=prov.id_proveedor) }}"
+             class="btn btn-sm btn-outline-danger" style="font-size:12px;"
+             onclick="return confirm('¿Desactivar este proveedor?')">
+            <i class="bi bi-x-circle"></i> Desactivar
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="card p-4 text-center" style="color:#aaa;">
+      <i class="bi bi-people" style="font-size:40px;"></i>
+      <p class="mt-2">No hay proveedores registrados aún.</p>
+      <a href="{{ url_for('nuevo_proveedor') }}" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+        Agregar el primero
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

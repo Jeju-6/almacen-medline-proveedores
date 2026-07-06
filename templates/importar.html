@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Importar - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-file-earmark-arrow-up"></i> Importar inventario desde Excel
+  </h4>
+  <a href="{{ url_for('articulos') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Regresar
+  </a>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:16px; font-size:15px;">
+        <i class="bi bi-upload"></i> Subir archivo Excel
+      </div>
+
+      <!-- Selector de modo -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Modo de importación</label>
+        <div class="d-flex gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="modo_sel" id="modoProv"
+                   value="proveedor" checked onchange="toggleModo()">
+            <label class="form-check-label" for="modoProv">
+              Por proveedor específico
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="modo_sel" id="modoGen"
+                   value="general" onchange="toggleModo()">
+            <label class="form-check-label" for="modoGen">
+              Inventario general (varios proveedores)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" id="formImportar">
+        <input type="hidden" name="modo" id="modoInput" value="proveedor">
+
+        <div class="mb-3" id="campoProv">
+          <label class="form-label fw-semibold">Proveedor <span class="text-danger">*</span></label>
+          <select name="id_proveedor" class="form-select">
+            <option value="">Seleccionar proveedor...</option>
+            {% for prov in proveedores %}
+            <option value="{{ prov.id_proveedor }}">{{ prov.nombre }}</option>
+            {% endfor %}
+          </select>
+          <div class="form-text">Los artículos se asignarán a este proveedor.</div>
+        </div>
+
+        <div class="mb-3" id="infoGeneral" style="display:none;">
+          <div style="background:#e8f4f8; border-radius:8px; padding:12px; font-size:13px;">
+            <i class="bi bi-info-circle" style="color:#0b4f6c;"></i>
+            El archivo debe incluir la columna <strong>H — Proveedor</strong> con el nombre
+            exacto del proveedor tal como está registrado en el sistema.
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Archivo Excel <span class="text-danger">*</span></label>
+          <input type="file" name="archivo" class="form-control" accept=".xlsx,.xls" required>
+          <div class="form-text">Formato permitido: .xlsx o .xls</div>
+        </div>
+
+        <div style="background:#fff8e1; border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px;">
+          <i class="bi bi-exclamation-triangle-fill" style="color:#fd7e14;"></i>
+          <strong>Importante:</strong> Si un artículo con el mismo número de parte ya existe
+          para ese proveedor, se actualizará en lugar de duplicarse.
+        </div>
+
+        <button type="submit" class="btn" style="background:#0b4f6c; color:#fff; width:100%; padding:12px;">
+          <i class="bi bi-cloud-upload"></i> Importar artículos
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-5">
+    <div class="card p-4 mb-3">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:12px; font-size:15px;">
+        <i class="bi bi-table"></i> Formato requerido del Excel
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm" style="font-size:12px;">
+          <thead style="background:#f0f8fc;">
+            <tr>
+              <th>Col.</th>
+              <th>Campo</th>
+              <th>Requerido</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>A</strong></td><td>Num. Parte</td><td><span class="badge bg-danger">Sí</span></td></tr>
+            <tr><td><strong>B</strong></td><td>Nombre</td><td><span class="badge bg-danger">Sí</span></td></tr>
+            <tr><td><strong>C</strong></td><td>Descripción</td><td><span class="badge bg-secondary">No</span></td></tr>
+            <tr><td><strong>D</strong></td><td>Unidad de medida</td><td><span class="badge bg-secondary">No</span></td></tr>
+            <tr><td><strong>E</strong></td><td>Stock inicial</td><td><span class="badge bg-secondary">No</span></td></tr>
+            <tr><td><strong>F</strong></td><td>Stock mínimo</td><td><span class="badge bg-secondary">No</span></td></tr>
+            <tr><td><strong>G</strong></td><td>Link de compra</td><td><span class="badge bg-secondary">No</span></td></tr>
+            <tr style="background:#fff8e1;">
+              <td><strong>H</strong></td>
+              <td>Proveedor <span style="font-size:10px; color:#888;">(solo modo general)</span></td>
+              <td><span class="badge bg-warning text-dark">General</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:8px; font-size:15px;">
+        <i class="bi bi-file-earmark-excel"></i> ¿No tienes el formato?
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:12px;">
+        Descarga la plantilla con los encabezados correctos y ejemplos.
+      </div>
+      <a href="{{ url_for('descargar_plantilla') }}"
+         class="btn btn-outline-success" style="width:100%;">
+        <i class="bi bi-download"></i> Descargar plantilla (.xlsx)
+      </a>
+    </div>
+  </div>
+</div>
+<div class="mt-4">
+  <div class="card p-4" style="border-left:4px solid #198754;">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width:48px; height:48px; background:#e8f5e9; border-radius:10px;
+                  display:flex; align-items:center; justify-content:center;">
+        <i class="bi bi-database-up" style="font-size:24px; color:#198754;"></i>
+      </div>
+      <div>
+        <div style="font-weight:700; color:#0b4f6c; font-size:15px;">Importar base de datos SQL</div>
+        <div style="font-size:12px; color:#888;">Restaura o migra datos desde un archivo .sql</div>
+      </div>
+      <a href="{{ url_for('importar_sql') }}" class="btn btn-sm btn-outline-success ms-auto">
+        <i class="bi bi-database-up"></i> Importar SQL
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleModo() {
+    const modo = document.querySelector('input[name="modo_sel"]:checked').value;
+    document.getElementById('modoInput').value = modo;
+    document.getElementById('campoProv').style.display = modo === 'proveedor' ? 'block' : 'none';
+    document.getElementById('infoGeneral').style.display = modo === 'general' ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

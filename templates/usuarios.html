@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Usuarios - Almacén Medline{% endblock %}
+
+{% block extra_css %}
+<style>
+  .vista-tabla { display: block; }
+  .vista-cards { display: none; }
+  @media (max-width: 768px) {
+    .vista-tabla { display: none; }
+    .vista-cards { display: block; }
+  }
+  .card-usuario { border-radius: 12px; margin-bottom: 12px; border: none;
+                  box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-person-gear"></i> Usuarios
+  </h4>
+  <a href="{{ url_for('nuevo_usuario') }}" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+    <i class="bi bi-plus-lg"></i> Nuevo
+  </a>
+</div>
+
+<!-- VISTA DESKTOP: Tabla -->
+<div class="card vista-tabla">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Rol</th>
+            <th>Proveedor</th>
+            <th>Correo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for u in usuarios %}
+          <tr>
+            <td><div style="font-weight:600;">{{ u.nombre }}</div></td>
+            <td><code>{{ u.username }}</code></td>
+            <td>
+              {% if u.rol == 'admin' %}
+                <span class="badge" style="background:#0b4f6c;">Admin</span>
+              {% elif u.rol == 'proveedor' %}
+                <span class="badge bg-primary">Proveedor</span>
+              {% else %}
+                <span class="badge bg-secondary">Kiosco</span>
+              {% endif %}
+            </td>
+            <td>{{ u.nombre_proveedor or '—' }}</td>
+            <td style="font-size:12px; color:#888;">{{ u.email or '—' }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('editar_usuario', id_usuario=u.id_usuario) }}"
+                   class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                  <i class="bi bi-pencil"></i> Editar
+                </a>
+                {% if u.id_usuario != session.usuario_id %}
+                <a href="{{ url_for('desactivar_usuario', id_usuario=u.id_usuario) }}"
+                   class="btn btn-sm btn-outline-danger" style="font-size:11px;"
+                   onclick="return confirm('¿Desactivar este usuario?')">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA MÓVIL: Tarjetas -->
+<div class="vista-cards">
+  {% for u in usuarios %}
+  <div class="card-usuario card p-3">
+    <div class="d-flex align-items-center gap-3 mb-2">
+      <div style="width:46px; height:46px; background:#0b4f6c; border-radius:50%;
+                  display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+        <i class="bi bi-person-fill" style="color:#fff; font-size:20px;"></i>
+      </div>
+      <div style="flex:1;">
+        <div style="font-weight:700; color:#0b4f6c; font-size:15px;">{{ u.nombre }}</div>
+        <div style="font-size:12px; color:#888;">@{{ u.username }}</div>
+      </div>
+      <div>
+        {% if u.rol == 'admin' %}
+          <span class="badge" style="background:#0b4f6c;">Admin</span>
+        {% elif u.rol == 'proveedor' %}
+          <span class="badge bg-primary">Proveedor</span>
+        {% else %}
+          <span class="badge bg-secondary">Kiosco</span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if u.nombre_proveedor %}
+    <div style="font-size:12px; color:#555; margin-bottom:4px;">
+      <i class="bi bi-building"></i> {{ u.nombre_proveedor }}
+    </div>
+    {% endif %}
+
+    {% if u.email %}
+    <div style="font-size:12px; color:#888; margin-bottom:8px;">
+      <i class="bi bi-envelope"></i> {{ u.email }}
+    </div>
+    {% endif %}
+
+    <div class="d-flex gap-2 mt-2">
+      <a href="{{ url_for('editar_usuario', id_usuario=u.id_usuario) }}"
+         class="btn btn-sm btn-outline-primary" style="flex:1; font-size:12px;">
+        <i class="bi bi-pencil"></i> Editar
+      </a>
+      {% if u.id_usuario != session.usuario_id %}
+      <a href="{{ url_for('desactivar_usuario', id_usuario=u.id_usuario) }}"
+         class="btn btn-sm btn-outline-danger" style="font-size:12px;"
+         onclick="return confirm('¿Desactivar este usuario?')">
+        <i class="bi bi-x-circle"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Almacén Medline{% endblock %}
+
+{% block content %}
+<h4 style="color:#0b4f6c; font-weight:700; margin-bottom:20px;">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</h4>
+
+<!-- Tarjetas de resumen -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('articulos') }}" style="text-decoration:none;">
+      <div class="card p-3 text-center" style="transition:transform 0.2s; cursor:pointer;"
+           onmouseover="this.style.transform='translateY(-3px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+        <div style="font-size:32px; color:#0b4f6c;"><i class="bi bi-archive"></i></div>
+        <div style="font-size:28px; font-weight:700; color:#0b4f6c;">{{ total_articulos }}</div>
+        <div style="font-size:13px; color:#888;">Artículos activos</div>
+      </div>
+    </a>
+  </div>
+  {% if session.rol == 'admin' %}
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('proveedores') }}" style="text-decoration:none;">
+      <div class="card p-3 text-center" style="transition:transform 0.2s; cursor:pointer;"
+           onmouseover="this.style.transform='translateY(-3px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+        <div style="font-size:32px; color:#1a7a9e;"><i class="bi bi-people"></i></div>
+        <div style="font-size:28px; font-weight:700; color:#1a7a9e;">{{ total_proveedores }}</div>
+        <div style="font-size:13px; color:#888;">Proveedores</div>
+      </div>
+    </a>
+  </div>
+  {% endif %}
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('alertas') }}" style="text-decoration:none;">
+      <div class="card p-3 text-center" style="transition:transform 0.2s; cursor:pointer;"
+           onmouseover="this.style.transform='translateY(-3px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+        <div style="font-size:32px; color:#dc3545;"><i class="bi bi-bell"></i></div>
+        <div style="font-size:28px; font-weight:700; color:#dc3545;">{{ alertas|length }}</div>
+        <div style="font-size:13px; color:#888;">Alertas activas</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-6 col-md-3">
+    <a href="{{ url_for('estadisticas') }}" style="text-decoration:none;">
+      <div class="card p-3 text-center" style="transition:transform 0.2s; cursor:pointer;"
+           onmouseover="this.style.transform='translateY(-3px)'"
+           onmouseout="this.style.transform='translateY(0)'">
+        <div style="font-size:32px; color:#fd7e14;"><i class="bi bi-exclamation-triangle"></i></div>
+        <div style="font-size:28px; font-weight:700; color:#fd7e14;">{{ criticos|length }}</div>
+        <div style="font-size:13px; color:#888;">Materiales críticos</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Alertas activas -->
+{% if alertas %}
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#dc3545;"><i class="bi bi-bell-fill"></i> Alertas de stock bajo</span>
+    <a href="{{ url_for('alertas') }}" class="btn btn-sm btn-outline-danger">Ver todas</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#fef2f2; font-size:13px;">
+          <tr>
+            <th>Artículo</th>
+            <th>Stock actual</th>
+            <th>Stock mínimo</th>
+            <th>Fecha</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for alerta in alertas %}
+          <tr>
+            <td><strong>{{ alerta.nombre_articulo }}</strong></td>
+            <td><span class="badge bg-danger">{{ alerta.stock_actual }}</span></td>
+            <td>{{ alerta.stock_minimo }}</td>
+            <td>{{ alerta.fecha_hora }}</td>
+            <td>
+              <a href="{{ url_for('resolver_alerta', id_alerta=alerta.id_alerta) }}"
+                 class="btn btn-sm btn-outline-success">Resolver</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Materiales críticos -->
+{% if criticos %}
+<div class="card mb-4">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#fd7e14;"><i class="bi bi-exclamation-triangle-fill"></i> Materiales críticos</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#fff8f0; font-size:13px;">
+          <tr>
+            <th>Artículo</th>
+            <th>Num. parte</th>
+            <th>Stock actual</th>
+            <th>Unidad</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for art in criticos %}
+          <tr>
+            <td><strong>{{ art.nombre }}</strong> <span class="badge-critico ms-1">CRÍTICO</span></td>
+            <td>{{ art.num_parte }}</td>
+            <td>{{ art.stock_actual }}</td>
+            <td>{{ art.unidad_medida }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Movimientos recientes -->
+<div class="card">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;"><i class="bi bi-clock-history"></i> Movimientos recientes</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Artículo</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for mov in movimientos_recientes %}
+          <tr>
+            <td><strong>{{ mov.nombre_articulo }}</strong></td>
+            <td>
+              {% if mov.tipo == 'ENTRADA' %}
+                <span class="badge bg-success">ENTRADA</span>
+              {% else %}
+                <span class="badge bg-danger">SALIDA</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.cantidad }}</td>
+            <td>{{ mov.nombre_usuario or 'Kiosco' }}</td>
+            <td>{{ mov.fecha_hora | replace('-', '/') if mov.fecha_hora else '' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endblock %}

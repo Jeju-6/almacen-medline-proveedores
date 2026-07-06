@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Editar Artículo - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-pencil-square"></i> Editar artículo
+  </h4>
+  <a href="{{ url_for('articulos') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Regresar
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-4">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Número de parte <span class="text-danger">*</span></label>
+          <input type="text" name="num_parte" class="form-control" required value="{{ articulo.num_parte }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nombre del artículo <span class="text-danger">*</span></label>
+          <input type="text" name="nombre" class="form-control" required value="{{ articulo.nombre }}">
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Descripción</label>
+          <textarea name="descripcion" class="form-control" rows="2">{{ articulo.descripcion or '' }}</textarea>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Ubicación en el almacén</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+            <input type="text" name="ubicacion" class="form-control"
+              value="{{ articulo.ubicacion or '' }}"
+              placeholder="Ej: Estante A3, Cajón 2 / Rack B / Zona de herramientas">
+          </div>
+          <div class="form-text">Indica dónde se encuentra físicamente este artículo.</div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Unidad de medida <span class="text-danger">*</span></label>
+          <select name="unidad_medida" class="form-select">
+            {% for u in ['piezas','cajas','rollos','litros','kg','metros','pares','juegos'] %}
+            <option value="{{ u }}" {% if articulo.unidad_medida == u %}selected{% endif %}>
+              {{ u.capitalize() }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Stock mínimo <span class="text-danger">*</span></label>
+          <input type="number" name="stock_minimo" class="form-control" value="{{ articulo.stock_minimo }}" min="1" required>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Proveedor <span class="text-danger">*</span></label>
+          <select name="id_proveedor" class="form-select" required>
+            {% for prov in proveedores %}
+            <option value="{{ prov.id_proveedor }}" {% if articulo.id_proveedor == prov.id_proveedor %}selected{% endif %}>
+              {{ prov.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Link de compra</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+            <input type="url" name="link_compra" class="form-control" value="{{ articulo.link_compra or '' }}">
+          </div>
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label fw-semibold">Imagen del producto</label>
+          {% if articulo.imagen %}
+          <div class="mb-2">
+            <img src="{{ url_for('static', filename='uploads/' + articulo.imagen) }}"
+                 style="height:70px; border-radius:8px; border:1px solid #eee; padding:4px;">
+            <span style="font-size:12px; color:#888; margin-left:8px;">Imagen actual</span>
+          </div>
+          {% endif %}
+          <input type="file" name="imagen" class="form-control" accept="image/*">
+          <div class="form-text">Sube una nueva imagen para reemplazar la actual.</div>
+        </div>
+
+        <div class="col-12 mt-2">
+          <button type="submit" class="btn" style="background:#0b4f6c; color:#fff; padding:10px 28px;">
+            <i class="bi bi-save"></i> Guardar cambios
+          </button>
+          <a href="{{ url_for('articulos') }}" class="btn btn-outline-secondary ms-2">
+            Cancelar
+          </a>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

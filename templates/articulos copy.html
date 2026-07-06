@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Artículos - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-archive"></i> Artículos
+  </h4>
+  {% if session.rol == 'admin' %}
+  <a href="{{ url_for('nuevo_articulo') }}" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+    <i class="bi bi-plus-lg"></i> Nuevo artículo
+  </a>
+  {% endif %}
+</div>
+
+<!-- Buscador -->
+<div class="card mb-3 p-3">
+  <input type="text" id="buscador" class="form-control" placeholder="🔍 Buscar por nombre o número de parte...">
+</div>
+
+<!-- Tabla -->
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="tablaArticulos">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Imagen</th>
+            <th>Num. parte</th>
+            <th>Nombre</th>
+            <th>Proveedor</th>
+            <th>Unidad</th>
+            <th>Stock actual</th>
+            <th>Stock mínimo</th>
+            <th>Estado</th>
+            {% if session.rol == 'admin' %}
+            <th>Acciones</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for art in articulos %}
+          <tr>
+            <td>
+              {% if art.imagen %}
+                <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
+                     style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
+              {% else %}
+                <div style="width:48px; height:48px; background:#f0f0f0; border-radius:6px;
+                            display:flex; align-items:center; justify-content:center;">
+                  <i class="bi bi-box" style="color:#aaa; font-size:20px;"></i>
+                </div>
+              {% endif %}
+            </td>
+            <td><code>{{ art.num_parte }}</code></td>
+            <td>
+              <strong>{{ art.nombre }}</strong>
+              {% if art.es_critico %}
+                <span class="badge-critico ms-1">CRÍTICO</span>
+              {% endif %}
+              {% if art.descripcion %}
+                <div style="font-size:11px; color:#888;">{{ art.descripcion }}</div>
+              {% endif %}
+            </td>
+            <td>{{ art.nombre_proveedor }}</td>
+            <td>{{ art.unidad_medida }}</td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span class="badge bg-danger">{{ art.stock_actual }}</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span class="badge bg-warning text-dark">{{ art.stock_actual }}</span>
+              {% else %}
+                <span class="badge bg-success">{{ art.stock_actual }}</span>
+              {% endif %}
+            </td>
+            <td>{{ art.stock_minimo }}</td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span style="color:#dc3545; font-size:12px;"><i class="bi bi-exclamation-circle-fill"></i> Bajo</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span style="color:#fd7e14; font-size:12px;"><i class="bi bi-exclamation-triangle-fill"></i> Precaución</span>
+              {% else %}
+                <span style="color:#198754; font-size:12px;"><i class="bi bi-check-circle-fill"></i> OK</span>
+              {% endif %}
+            </td>
+            {% if session.rol == 'admin' %}
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
+                   class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
+                   class="btn btn-sm btn-outline-danger" style="font-size:11px;"
+                   onclick="return confirm('¿Desactivar este artículo?')">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('buscador').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    const filas = document.querySelectorAll('#tablaArticulos tbody tr');
+    filas.forEach(fila => {
+      fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+  });
+</script>
+{% endblock %}

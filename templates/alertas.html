@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Alertas - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-bell-fill"></i> Alertas de stock
+  </h4>
+</div>
+
+{% if alertas %}
+<div class="row g-3">
+  {% for alerta in alertas %}
+  <div class="col-md-6">
+    <div class="card p-3" style="border-left: 4px solid #dc3545;">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div style="font-weight:600; font-size:15px; color:#0b4f6c;">
+            {{ alerta.nombre_articulo }}
+          </div>
+          <div style="font-size:12px; color:#888; margin-top:2px;">
+            Proveedor: {{ alerta.nombre_proveedor }}
+          </div>
+        </div>
+        <span class="badge bg-danger">STOCK BAJO</span>
+      </div>
+
+      <div class="d-flex gap-3 mt-3" style="font-size:13px;">
+        <div class="text-center">
+          <div style="font-size:22px; font-weight:700; color:#dc3545;">{{ alerta.stock_actual }}</div>
+          <div style="color:#888;">Stock actual</div>
+        </div>
+        <div class="text-center">
+          <div style="font-size:22px; font-weight:700; color:#fd7e14;">{{ alerta.stock_minimo }}</div>
+          <div style="color:#888;">Stock mínimo</div>
+        </div>
+        <div class="text-center">
+          <div style="font-size:22px; font-weight:700; color:#198754;">
+            {{ alerta.stock_minimo - alerta.stock_actual + alerta.stock_minimo }}
+          </div>
+          <div style="color:#888;">Sugerido reorden</div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div style="font-size:11px; color:#aaa;">
+          <i class="bi bi-clock"></i> {{ alerta.fecha_hora }}
+        </div>
+        <div class="d-flex gap-2">
+          {% if alerta.link_compra %}
+          <a href="{{ alerta.link_compra }}" target="_blank"
+             class="btn btn-sm btn-outline-primary" style="font-size:12px;">
+            <i class="bi bi-cart"></i> Comprar
+          </a>
+          {% endif %}
+          <a href="{{ url_for('orden_compra', id_articulo=alerta.id_articulo) }}"
+             class="btn btn-sm btn-outline-secondary" style="font-size:12px;">
+            <i class="bi bi-file-earmark-pdf"></i> Orden PDF
+          </a>
+          <a href="{{ url_for('resolver_alerta', id_alerta=alerta.id_alerta) }}"
+             class="btn btn-sm btn-outline-success" style="font-size:12px;">
+            <i class="bi bi-check-lg"></i> Resolver
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card p-5 text-center" style="color:#aaa;">
+  <i class="bi bi-check-circle" style="font-size:48px; color:#198754;"></i>
+  <p class="mt-3" style="font-size:16px;">¡Todo en orden! No hay alertas activas.</p>
+</div>
+{% endif %}
+{% endblock %}

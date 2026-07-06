@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block title %}Artículos - Almacén Medline{% endblock %}
+
+{% block extra_css %}
+<style>
+  .vista-tabla { display: block; }
+  .vista-cards { display: none; }
+  @media (max-width: 768px) {
+    .vista-tabla { display: none; }
+    .vista-cards { display: block; }
+  }
+  .card-articulo { border-radius: 12px; margin-bottom: 12px; border: none;
+                   box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+  .card-articulo .badge-ubicacion { background:#e8f4f8; color:#0b4f6c; padding:3px 8px;
+                                     border-radius:6px; font-size:11px; font-weight:600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-archive"></i> Artículos
+  </h4>
+  {% if session.rol == 'admin' %}
+  <a href="{{ url_for('nuevo_articulo') }}" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+    <i class="bi bi-plus-lg"></i> Nuevo
+  </a>
+  {% endif %}
+</div>
+
+<!-- Buscador -->
+<div class="card mb-3 p-3">
+  <input type="text" id="buscador" class="form-control"
+         placeholder="🔍 Buscar por nombre o número de parte...">
+</div>
+
+<!-- Reasignación masiva (solo admin, solo desktop) -->
+{% if session.rol == 'admin' %}
+<div class="card mb-3 p-3 vista-tabla" id="barraReasignar" style="display:none; background:#f0f8fc;">
+  <form method="POST" action="{{ url_for('reasignar_articulos') }}" id="formReasignar">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <span style="font-size:13px; font-weight:600; color:#0b4f6c;">
+        <i class="bi bi-arrow-left-right"></i>
+        <span id="conteoSel">0</span> artículo(s) seleccionado(s)
+      </span>
+      <select name="id_proveedor_nuevo" class="form-select form-select-sm" style="width:220px;" required>
+        <option value="">Mover a proveedor...</option>
+        {% for prov in proveedores %}
+        <option value="{{ prov.id_proveedor }}">{{ prov.nombre }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm" style="background:#0b4f6c; color:#fff;">
+        <i class="bi bi-arrow-left-right"></i> Reasignar
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" onclick="limpiarSeleccion()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+{% endif %}
+
+<!-- VISTA DESKTOP: Tabla -->
+<div class="card vista-tabla">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="tablaArticulos">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            {% if session.rol == 'admin' %}
+            <th style="width:40px;">
+              <input type="checkbox" id="checkTodos" onclick="toggleTodos(this)">
+            </th>
+            {% endif %}
+            <th>Imagen</th>
+            <th>Num. parte</th>
+            <th>Nombre</th>
+            <th>Proveedor</th>
+            <th>Unidad</th>
+            <th>Stock actual</th>
+            <th>Stock mínimo</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            {% if session.rol == 'admin' %}
+            <th>Acciones</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for art in articulos %}
+          <tr>
+            {% if session.rol == 'admin' %}
+            <td>
+              <input type="checkbox" class="check-art" value="{{ art.id_articulo }}"
+                     onclick="actualizarSeleccion()">
+            </td>
+            {% endif %}
+            <td>
+              {% if art.imagen %}
+                <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
+                     style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
+              {% else %}
+                <div style="width:48px; height:48px; background:#f0f0f0; border-radius:6px;
+                            display:flex; align-items:center; justify-content:center;">
+                  <i class="bi bi-box" style="color:#aaa; font-size:20px;"></i>
+                </div>
+              {% endif %}
+            </td>
+            <td><code>{{ art.num_parte }}</code></td>
+            <td>
+              <a href="{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}"
+                 style="text-decoration:none; color:#0b4f6c; font-weight:600;">
+                {{ art.nombre }}
+              </a>
+              {% if art.es_critico %}
+                <span class="badge-critico ms-1">CRÍTICO</span>
+              {% endif %}
+              {% if art.descripcion %}
+                <div style="font-size:11px; color:#888;">{{ art.descripcion }}</div>
+              {% endif %}
+            </td>
+            <td>{{ art.nombre_proveedor }}</td>
+            <td>{{ art.unidad_medida }}</td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span class="badge bg-danger">{{ art.stock_actual }}</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span class="badge bg-warning text-dark">{{ art.stock_actual }}</span>
+              {% else %}
+                <span class="badge bg-success">{{ art.stock_actual }}</span>
+              {% endif %}
+            </td>
+            <td>{{ art.stock_minimo }}</td>
+            <td>
+              {% if art.ubicacion %}
+                <span class="badge-ubicacion">
+                  <i class="bi bi-geo-alt-fill"></i> {{ art.ubicacion }}
+                </span>
+              {% else %}
+                <span style="color:#ccc; font-size:12px;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span style="color:#dc3545; font-size:12px;"><i class="bi bi-exclamation-circle-fill"></i> Bajo</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span style="color:#fd7e14; font-size:12px;"><i class="bi bi-exclamation-triangle-fill"></i> Precaución</span>
+              {% else %}
+                <span style="color:#198754; font-size:12px;"><i class="bi bi-check-circle-fill"></i> OK</span>
+              {% endif %}
+            </td>
+            {% if session.rol == 'admin' %}
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
+                   class="btn btn-sm btn-outline-primary" style="font-size:11px;">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
+                   class="btn btn-sm btn-outline-danger" style="font-size:11px;"
+                   onclick="return confirm('¿Desactivar este artículo?')">
+                  <i class="bi bi-x-circle"></i>
+                </a>
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- VISTA MÓVIL: Tarjetas -->
+<div class="vista-cards" id="listaCards">
+  {% for art in articulos %}
+  <div class="card-articulo card p-3 articulo-item">
+    <div class="d-flex gap-3 align-items-start">
+      {% if art.imagen %}
+        <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
+             style="width:60px; height:60px; object-fit:cover; border-radius:8px; flex-shrink:0;">
+      {% else %}
+        <div style="width:60px; height:60px; background:#f0f0f0; border-radius:8px;
+                    display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+          <i class="bi bi-box" style="color:#aaa; font-size:24px;"></i>
+        </div>
+      {% endif %}
+      <div style="flex:1; min-width:0;">
+        <a href="{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}"
+           style="text-decoration:none; color:#0b4f6c; font-weight:700; font-size:15px;">
+          {{ art.nombre }}
+        </a>
+        {% if art.es_critico %}
+          <span class="badge-critico ms-1">CRÍTICO</span>
+        {% endif %}
+        <div style="font-size:12px; color:#888; margin-top:2px;">
+          <code>{{ art.num_parte }}</code> · {{ art.nombre_proveedor }}
+        </div>
+        {% if art.descripcion %}
+          <div style="font-size:11px; color:#aaa; margin-top:2px;">{{ art.descripcion }}</div>
+        {% endif %}
+        {% if art.ubicacion %}
+          <div class="mt-1">
+            <span class="badge-ubicacion">
+              <i class="bi bi-geo-alt-fill"></i> {{ art.ubicacion }}
+            </span>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="d-flex gap-3">
+        <div style="text-align:center;">
+          {% if art.stock_actual <= art.stock_minimo %}
+            <span class="badge bg-danger" style="font-size:14px;">{{ art.stock_actual }}</span>
+          {% elif art.stock_actual <= art.stock_minimo * 2 %}
+            <span class="badge bg-warning text-dark" style="font-size:14px;">{{ art.stock_actual }}</span>
+          {% else %}
+            <span class="badge bg-success" style="font-size:14px;">{{ art.stock_actual }}</span>
+          {% endif %}
+          <div style="font-size:10px; color:#888; margin-top:2px;">Stock</div>
+        </div>
+        <div style="text-align:center;">
+          <span style="font-size:14px; font-weight:600; color:#0b4f6c;">{{ art.stock_minimo }}</span>
+          <div style="font-size:10px; color:#888; margin-top:2px;">Mínimo</div>
+        </div>
+        <div style="text-align:center;">
+          <span style="font-size:12px;">{{ art.unidad_medida }}</span>
+          <div style="font-size:10px; color:#888; margin-top:2px;">Unidad</div>
+        </div>
+      </div>
+      {% if session.rol == 'admin' %}
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
+           class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
+           class="btn btn-sm btn-outline-danger"
+           onclick="return confirm('¿Desactivar este artículo?')">
+          <i class="bi bi-x-circle"></i>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Buscador funciona en ambas vistas
+  document.getElementById('buscador').addEventListener('input', function() {
+    const filtro = this.value.toLowerCase();
+    // Desktop
+    document.querySelectorAll('#tablaArticulos tbody tr').forEach(fila => {
+      fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+    // Móvil
+    document.querySelectorAll('.articulo-item').forEach(card => {
+      card.style.display = card.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+    });
+  });
+
+  function actualizarSeleccion() {
+    const checks = document.querySelectorAll('.check-art:checked');
+    const barra = document.getElementById('barraReasignar');
+    const conteo = document.getElementById('conteoSel');
+    const form = document.getElementById('formReasignar');
+    document.querySelectorAll('.input-art-sel').forEach(e => e.remove());
+    checks.forEach(c => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'articulos_sel';
+      input.value = c.value;
+      input.className = 'input-art-sel';
+      form.appendChild(input);
+    });
+    conteo.textContent = checks.length;
+    if (barra) barra.style.display = checks.length > 0 ? 'block' : 'none';
+  }
+
+  function toggleTodos(checkbox) {
+    document.querySelectorAll('.check-art').forEach(c => c.checked = checkbox.checked);
+    actualizarSeleccion();
+  }
+
+  function limpiarSeleccion() {
+    document.querySelectorAll('.check-art').forEach(c => c.checked = false);
+    const checkTodos = document.getElementById('checkTodos');
+    if (checkTodos) checkTodos.checked = false;
+    actualizarSeleccion();
+  }
+</script>
+{% endblock %}

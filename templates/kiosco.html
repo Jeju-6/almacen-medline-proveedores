@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiosco - Almacén Medline</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { background: #0b4f6c; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .kiosco-card { background: #fff; border-radius: 16px; padding: 30px; width: 100%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+    .kiosco-header { text-align: center; margin-bottom: 24px; }
+    .kiosco-header h4 { color: #0b4f6c; font-weight: 700; margin: 0; }
+    .kiosco-header p { color: #888; font-size: 13px; margin: 4px 0 0; }
+    #reader { width: 100%; border: 2px dashed #0b4f6c; border-radius: 10px; overflow: hidden; background: #f8f9fa; margin-bottom: 16px; }
+    .btn-tipo { width: 48%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: 2px solid; cursor: pointer; transition: all 0.2s; }
+    .btn-entrada { border-color: #198754; color: #198754; background: #fff; }
+    .btn-entrada.activo { background: #198754; color: #fff; }
+    .btn-salida { border-color: #dc3545; color: #dc3545; background: #fff; }
+    .btn-salida.activo { background: #dc3545; color: #fff; }
+    .btn-registrar { width: 100%; padding: 14px; background: #0b4f6c; color: #fff; border: none; border-radius: 10px; font-size: 17px; font-weight: 700; margin-top: 16px; cursor: pointer; }
+    .btn-registrar:hover { background: #1a7a9e; }
+    .btn-reset { width: 100%; padding: 8px; background: transparent; border: 1px solid #ccc; border-radius: 8px; color: #888; font-size: 13px; margin-top: 8px; cursor: pointer; }
+    .status-box { padding: 14px; border-radius: 10px; text-align: center; font-weight: 600; font-size: 15px; margin-top: 16px; display: none; }
+    .status-success { background: #d1e7dd; color: #0f5132; }
+    .status-error { background: #f8d7da; color: #842029; }
+    .articulo-info { background: #f0f8fc; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: none; }
+  </style>
+</head>
+<body>
+<div class="kiosco-card">
+  <div class="kiosco-header">
+    <i class="bi bi-qr-code-scan" style="font-size:36px; color:#0b4f6c;"></i>
+    <h4>Modo Kiosco</h4>
+    <p>Almacén de proveedores Medline</p>
+  </div>
+
+  <div id="reader"></div>
+  <button class="btn-reset" onclick="reiniciarLector()">
+    <i class="bi bi-arrow-clockwise"></i> Resetear lector / Escanear otro
+  </button>
+
+  <div class="articulo-info" id="articuloInfo">
+    <div style="font-size:13px; color:#888;">Artículo detectado:</div>
+    <div id="articuloNombre" style="font-weight:700; color:#0b4f6c; font-size:16px;"></div>
+    <div id="articuloStock" style="font-size:13px; color:#555;"></div>
+  </div>
+
+  <div class="d-flex justify-content-between gap-2 mb-3 mt-3">
+    <button class="btn-tipo btn-entrada activo" id="btnEntrada" onclick="seleccionarTipo('ENTRADA')">
+      <i class="bi bi-box-arrow-in-down"></i> ENTRADA
+    </button>
+    <button class="btn-tipo btn-salida" id="btnSalida" onclick="seleccionarTipo('SALIDA')">
+      <i class="bi bi-box-arrow-up"></i> SALIDA
+    </button>
+  </div>
+
+  <div>
+    <label style="font-weight:600; font-size:14px;">Cantidad:</label>
+    <input type="number" id="cantidad" value="1" min="1"
+      style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:16px; margin-top:6px;">
+  </div>
+
+  <div>
+    <label style="font-weight:600; font-size:14px; margin-top:12px; display:block;">Observaciones (opcional):</label>
+    <input type="text" id="observaciones" placeholder="Ej: Turno mañana"
+      style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-top:6px;">
+  </div>
+
+  <button class="btn-registrar" onclick="registrar()">
+    <i class="bi bi-check-circle"></i> Registrar operación
+  </button>
+
+  <div class="status-box" id="statusBox"></div>
+
+<div style="text-align:center; margin-top:20px; display:flex; justify-content:center; gap:20px;">
+    <a href="/login" style="font-size:12px; color:#aaa; text-decoration:none;">
+      <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión con cuenta
+    </a>
+    <a href="/dashboard" style="font-size:12px; color:#aaa; text-decoration:none;">
+      <i class="bi bi-speedometer2"></i> Ir al dashboard
+    </a>
+  </div>
+</div>
+
+<script>
+  let codigoDetectado = '';
+  let stockActual = 0;
+  let tipoSeleccionado = 'ENTRADA';
+
+  function onScanSuccess(decodedText) {
+    codigoDetectado = decodedText;
+    if (navigator.vibrate) navigator.vibrate(100);
+    buscarArticulo(decodedText);
+  }
+
+  function buscarArticulo(codigo) {
+    fetch('/api/articulo/' + encodeURIComponent(codigo))
+      .then(r => r.json())
+      .then(data => {
+        if (data.found) {
+          stockActual = data.stock_actual;
+          document.getElementById('articuloNombre').textContent = data.nombre;
+          document.getElementById('articuloStock').textContent = 'Stock actual: ' + data.stock_actual + ' ' + data.unidad_medida;
+          document.getElementById('articuloInfo').style.display = 'block';
+        } else {
+          stockActual = 0;
+          document.getElementById('articuloInfo').style.display = 'none';
+        }
+      });
+  }
+
+  let scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
+  scanner.render(onScanSuccess, () => {});
+
+  function reiniciarLector() {
+    codigoDetectado = '';
+    document.getElementById('articuloInfo').style.display = 'none';
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('cantidad').value = '1';
+    document.getElementById('observaciones').value = '';
+    scanner.clear().then(() => {
+      scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
+      scanner.render(onScanSuccess, () => {});
+    }).catch(() => {});
+  }
+
+  function seleccionarTipo(tipo) {
+    tipoSeleccionado = tipo;
+    document.getElementById('btnEntrada').classList.toggle('activo', tipo === 'ENTRADA');
+    document.getElementById('btnSalida').classList.toggle('activo', tipo === 'SALIDA');
+  }
+
+  function registrar() {
+    if (!codigoDetectado) {
+      mostrarStatus('Por favor escanea un código QR primero.', 'error');
+      return;
+    }
+    const cantidad = parseInt(document.getElementById('cantidad').value);
+    if (!cantidad || cantidad < 1) {
+      mostrarStatus('La cantidad debe ser mayor a 0.', 'error');
+      return;
+    }
+
+    // Confirmación si es salida grande
+    if (tipoSeleccionado === 'SALIDA' && stockActual > 0) {
+      const porcentaje = (cantidad / stockActual) * 100;
+      if (porcentaje >= 50) {
+        const confirmar = confirm(
+          `⚠️ Estás sacando ${cantidad} de ${stockActual} unidades (${Math.round(porcentaje)}% del stock).\n\n¿Confirmas esta salida?`
+        );
+        if (!confirmar) return;
+      }
+    }
+    fetch('/registrar_movimiento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        codigo_qr: codigoDetectado,
+        tipo: tipoSeleccionado,
+        cantidad: cantidad,
+        observaciones: document.getElementById('observaciones').value,
+        modo_kiosco: 1
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      mostrarStatus(data.message, data.status);
+      if (data.status === 'success') {
+        setTimeout(() => reiniciarLector(), 2500);
+      }
+    });
+  }
+
+  function mostrarStatus(msg, tipo) {
+    const box = document.getElementById('statusBox');
+    box.textContent = msg;
+    box.className = 'status-box status-' + tipo;
+    box.style.display = 'block';
+  }
+</script>
+</body>
+</html>

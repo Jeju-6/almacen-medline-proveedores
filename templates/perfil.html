@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-person-circle"></i> Mi perfil
+  </h4>
+</div>
+
+<div class="row g-4">
+
+  <!-- Avatar y datos -->
+  <div class="col-md-4">
+    <div class="card p-4 text-center">
+      {% if usuario.rol == 'proveedor' and proveedor_logo %}
+        <img src="{{ url_for('static', filename='uploads/' + proveedor_logo) }}"
+             style="width:90px; height:90px; object-fit:contain; border-radius:12px;
+                    border:2px solid #e0e0e0; padding:6px; margin:0 auto 16px; display:block;">
+      {% else %}
+        <div style="width:90px; height:90px; background:#0b4f6c; border-radius:50%;
+                    display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
+          <i class="bi bi-person-fill" style="font-size:44px; color:#fff;"></i>
+        </div>
+      {% endif %}
+      <div style="font-size:18px; font-weight:700; color:#0b4f6c;">{{ usuario.nombre }}</div>
+      <div style="font-size:13px; color:#888; margin-top:4px;">@{{ usuario.username }}</div>
+      <div class="mt-2">
+        {% if usuario.rol == 'admin' %}
+          <span class="badge" style="background:#0b4f6c;">Administrador</span>
+        {% elif usuario.rol == 'proveedor' %}
+          <span class="badge bg-primary">Proveedor</span>
+        {% else %}
+          <span class="badge bg-secondary">Kiosco</span>
+        {% endif %}
+      </div>
+      {% if usuario.email %}
+      <div style="font-size:12px; color:#888; margin-top:12px;">
+        <i class="bi bi-envelope"></i> {{ usuario.email }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="col-md-8">
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:20px; font-size:15px;">
+        <i class="bi bi-pencil-square"></i> Editar información
+      </div>
+
+      <form method="POST">
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nombre completo</label>
+            <input type="text" name="nombre" class="form-control"
+                   value="{{ usuario.nombre }}" required>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Usuario</label>
+            <input type="text" class="form-control" value="{{ usuario.username }}"
+                   disabled style="background:#f8f9fa;">
+            <div class="form-text">El nombre de usuario no se puede cambiar.</div>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Correo electrónico</label>
+            <input type="email" name="email" class="form-control"
+                   value="{{ usuario.email or '' }}"
+                   placeholder="correo@ejemplo.com">
+            <div class="form-text">Para recibir alertas de stock bajo.</div>
+          </div>
+
+          <div class="col-12">
+            <hr style="margin:8px 0;">
+            <div style="font-weight:600; color:#0b4f6c; margin:12px 0 16px; font-size:14px;">
+              <i class="bi bi-lock"></i> Cambiar contraseña
+              <span style="font-weight:400; font-size:12px; color:#888;">
+                (dejar vacío para no cambiar)
+              </span>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Contraseña actual</label>
+            <input type="password" name="password_actual" class="form-control"
+                   placeholder="Tu contraseña actual">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Nueva contraseña</label>
+            <input type="password" name="password_nueva" class="form-control"
+                   placeholder="Nueva contraseña" id="passNueva">
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Confirmar contraseña</label>
+            <input type="password" name="password_confirmar" class="form-control"
+                   placeholder="Repetir nueva contraseña" id="passConfirmar">
+            <div id="passError" style="font-size:12px; color:#dc3545; display:none; margin-top:4px;">
+              Las contraseñas no coinciden.
+            </div>
+          </div>
+          
+          <div class="col-12">
+            <hr style="margin:8px 0;">
+            <div style="font-weight:600; color:#0b4f6c; margin:12px 0 16px; font-size:14px;">
+              <i class="bi bi-moon-stars"></i> Apariencia
+            </div>
+            <div class="d-flex align-items-center gap-3">
+              <span style="font-size:14px;">Modo oscuro</span>
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="modoOscuro"
+                       style="width:48px; height:24px; cursor:pointer;">
+              </div>
+              <span id="labelModo" style="font-size:13px; color:#888;">Desactivado</span>
+            </div>
+          </div>
+
+          <div class="col-12 mt-2">
+            <button type="submit" id="btnGuardar" class="btn"
+                    style="background:#0b4f6c; color:#fff; padding:10px 28px;">
+              <i class="bi bi-save"></i> Guardar cambios
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Validación de contraseñas
+    const passNueva = document.getElementById('passNueva');
+    const passConfirmar = document.getElementById('passConfirmar');
+    const passError = document.getElementById('passError');
+    const btnGuardar = document.getElementById('btnGuardar');
+
+    if (passNueva && passConfirmar) {
+      function validarPass() {
+        if (passNueva.value && passConfirmar.value) {
+          if (passNueva.value !== passConfirmar.value) {
+            passError.style.display = 'block';
+            btnGuardar.disabled = true;
+          } else {
+            passError.style.display = 'none';
+            btnGuardar.disabled = false;
+          }
+        } else {
+          passError.style.display = 'none';
+          btnGuardar.disabled = false;
+        }
+      }
+      passNueva.addEventListener('input', validarPass);
+      passConfirmar.addEventListener('input', validarPass);
+    }
+
+    // Modo oscuro toggle
+    const toggle = document.getElementById('modoOscuro');
+    const label = document.getElementById('labelModo');
+
+    if (toggle) {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      toggle.checked = isDark;
+      if (label) label.textContent = isDark ? 'Activado' : 'Desactivado';
+
+      toggle.addEventListener('change', function() {
+        if (this.checked) {
+          document.body.classList.add('dark-mode');
+          document.documentElement.classList.add('dark-mode');
+          localStorage.setItem('darkMode', 'true');
+          if (label) label.textContent = 'Activado';
+        } else {
+          document.body.classList.remove('dark-mode');
+          document.documentElement.classList.remove('dark-mode');
+          localStorage.setItem('darkMode', 'false');
+          if (label) label.textContent = 'Desactivado';
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

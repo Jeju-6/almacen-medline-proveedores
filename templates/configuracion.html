@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Configuración - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-gear"></i> Configuración del sistema
+  </h4>
+</div>
+
+<div class="row g-4">
+
+  <!-- Configuración general -->
+  <div class="col-md-8">
+    <div class="card p-4">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:20px; font-size:15px;">
+        <i class="bi bi-sliders"></i> Parámetros generales
+      </div>
+
+      <form method="POST">
+        <div class="row g-3">
+
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Nombre del almacén</label>
+            <input type="text" name="nombre_almacen" class="form-control"
+                   value="{{ config.nombre_almacen }}" required>
+            <div class="form-text">Aparece en el encabezado y en los reportes.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Stock mínimo global por defecto</label>
+            <input type="number" name="stock_minimo_global" class="form-control"
+                   value="{{ config.stock_minimo_global }}" min="1" required>
+            <div class="form-text">Se usa al crear nuevos artículos si no se especifica uno.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Días para calcular material crítico</label>
+            <input type="number" name="dias_critico" class="form-control"
+                   value="{{ config.dias_critico }}" min="7" max="365" required>
+            <div class="form-text">Período de análisis de consumo para detectar materiales críticos.</div>
+          </div>
+
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">Correo de alertas adicional</label>
+            <input type="email" name="correo_alertas" class="form-control"
+                   value="{{ config.correo_alertas }}"
+                   placeholder="correo@empresa.com">
+            <div class="form-text">Correo extra que recibirá todas las alertas además del admin y proveedor.</div>
+          </div>
+
+          <div class="col-12 mt-2">
+            <button type="submit" class="btn" style="background:#0b4f6c; color:#fff; padding:10px 28px;">
+              <i class="bi bi-save"></i> Guardar configuración
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Info del sistema -->
+  <div class="col-md-4">
+    <div class="card p-4 mb-3">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:16px; font-size:15px;">
+        <i class="bi bi-info-circle"></i> Información del sistema
+      </div>
+      <table style="font-size:13px; width:100%;">
+        <tr>
+          <td style="color:#888; padding:6px 0; width:130px;">Versión</td>
+          <td><span class="badge bg-success">1.0.0</span></td>
+        </tr>
+        <tr>
+          <td style="color:#888; padding:6px 0;">Base de datos</td>
+          <td>SQLite</td>
+        </tr>
+        <tr>
+          <td style="color:#888; padding:6px 0;">Framework</td>
+          <td>Flask + Python</td>
+        </tr>
+        <tr>
+          <td style="color:#888; padding:6px 0;">PWA</td>
+          <td><span class="badge bg-success">Activa</span></td>
+        </tr>
+        <tr>
+          <td style="color:#888; padding:6px 0;">Desarrollado por</td>
+          <td>UTNL</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card p-4 mb-3">
+      <div style="font-weight:600; color:#0b4f6c; margin-bottom:16px; font-size:15px;">
+        <i class="bi bi-database"></i> Base de datos
+      </div>
+      <div style="font-size:13px; color:#888; margin-bottom:12px;">
+        Exporta o respalda tu base de datos en cualquier momento.
+      </div>
+      <a href="{{ url_for('exportar_sql') }}"
+         class="btn btn-outline-success btn-sm" style="width:100%; margin-bottom:8px;">
+        <i class="bi bi-download"></i> Exportar SQL
+      </a>
+      <a href="{{ url_for('exportar') }}"
+         class="btn btn-outline-primary btn-sm" style="width:100%;">
+        <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+      </a>
+    </div>
+
+    <div class="card p-4" style="border-left:4px solid #fd7e14;">
+      <div style="font-weight:600; color:#fd7e14; margin-bottom:8px; font-size:14px;">
+        <i class="bi bi-exclamation-triangle"></i> Zona de peligro
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:12px;">
+        Estas acciones son irreversibles. Úsalas con precaución.
+      </div>
+      <a href="{{ url_for('exportar_sql') }}"
+         class="btn btn-sm btn-outline-warning" style="width:100%; margin-bottom:8px;">
+        <i class="bi bi-cloud-download"></i> Respaldar antes de continuar
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

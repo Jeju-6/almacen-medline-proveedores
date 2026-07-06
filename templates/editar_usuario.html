@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuario - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-pencil-square"></i> Editar usuario
+  </h4>
+  <a href="{{ url_for('usuarios') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Regresar
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-4">
+    <form method="POST">
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nombre completo <span class="text-danger">*</span></label>
+          <input type="text" name="nombre" class="form-control" required value="{{ usuario.nombre }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nombre de usuario <span class="text-danger">*</span></label>
+          <input type="text" name="username" class="form-control" required value="{{ usuario.username }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Nueva contraseña</label>
+          <input type="password" name="password" class="form-control" placeholder="Dejar vacío para no cambiar">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Correo electrónico</label>
+          <input type="email" name="email" class="form-control"
+            value="{{ usuario.email or '' }}" placeholder="correo@ejemplo.com">
+          <div class="form-text">Para recibir alertas de stock bajo.</div>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Rol <span class="text-danger">*</span></label>
+          <select name="rol" class="form-select" id="selectRol" onchange="toggleProveedor()">
+            <option value="proveedor" {% if usuario.rol == 'proveedor' %}selected{% endif %}>Proveedor</option>
+            <option value="admin" {% if usuario.rol == 'admin' %}selected{% endif %}>Administrador</option>
+            <option value="kiosco" {% if usuario.rol == 'kiosco' %}selected{% endif %}>Kiosco</option>
+          </select>
+        </div>
+
+        <div class="col-md-12" id="campoProveedor">
+          <label class="form-label fw-semibold">Proveedor asignado</label>
+          <select name="id_proveedor" class="form-select">
+            <option value="">Sin proveedor</option>
+            {% for prov in proveedores %}
+            <option value="{{ prov.id_proveedor }}"
+              {% if usuario.id_proveedor == prov.id_proveedor %}selected{% endif %}>
+              {{ prov.nombre }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-12 mt-2">
+          <button type="submit" class="btn" style="background:#0b4f6c; color:#fff; padding:10px 28px;">
+            <i class="bi bi-save"></i> Guardar cambios
+          </button>
+          <a href="{{ url_for('usuarios') }}" class="btn btn-outline-secondary ms-2">
+            Cancelar
+          </a>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleProveedor() {
+    const rol = document.getElementById('selectRol').value;
+    const campo = document.getElementById('campoProveedor');
+    campo.style.display = (rol === 'admin' || rol === 'kiosco') ? 'none' : 'block';
+  }
+  toggleProveedor();
+</script>
+{% endblock %}

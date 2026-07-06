@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Exportar - Almacén Medline{% endblock %}
+
+{% block content %}
+<h4 style="color:#0b4f6c; font-weight:700; margin-bottom:20px;">
+  <i class="bi bi-file-earmark-excel"></i> Exportar reportes
+</h4>
+
+<div class="row g-4">
+
+  <!-- Inventario general -->
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px; height:48px; background:#e8f4f8; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-boxes" style="font-size:24px; color:#0b4f6c;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0b4f6c; font-size:16px;">Inventario general</div>
+          <div style="font-size:12px; color:#888;">Todos los artículos con su stock actual y estado</div>
+        </div>
+      </div>
+
+      {% if session.rol == 'admin' %}
+      <div class="mb-3">
+        <label class="form-label fw-semibold" style="font-size:13px;">Filtrar por proveedor (opcional)</label>
+        <select id="filtroProveedor" class="form-select form-select-sm">
+          <option value="">Todos los proveedores</option>
+          {% for prov in proveedores %}
+          <option value="{{ prov.id_proveedor }}">{{ prov.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <a id="btnInventario" href="{{ url_for('exportar_inventario') }}"
+         class="btn" style="background:#198754; color:#fff; width:100%; padding:10px;">
+        <i class="bi bi-download"></i> Descargar inventario (.xlsx)
+      </a>
+    </div>
+  </div>
+
+  <!-- Movimientos -->
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px; height:48px; background:#fef3e2; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-clock-history" style="font-size:24px; color:#fd7e14;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0b4f6c; font-size:16px;">Historial de movimientos</div>
+          <div style="font-size:12px; color:#888;">Entradas y salidas con fechas y usuarios</div>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Fecha inicio</label>
+          <input type="date" id="fechaIni" class="form-control form-control-sm">
+        </div>
+        <div class="col-6">
+          <label class="form-label fw-semibold" style="font-size:13px;">Fecha fin</label>
+          <input type="date" id="fechaFin" class="form-control form-control-sm">
+        </div>
+      </div>
+
+      <a id="btnMovimientos" href="{{ url_for('exportar_movimientos') }}"
+         class="btn" style="background:#fd7e14; color:#fff; width:100%; padding:10px;">
+        <i class="bi bi-download"></i> Descargar movimientos (.xlsx)
+      </a>
+    </div>
+  </div>
+
+  <!-- Resumen por proveedor (solo admin) -->
+  {% if session.rol == 'admin' %}
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px; height:48px; background:#f3e5f5; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-people" style="font-size:24px; color:#6f42c1;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0b4f6c; font-size:16px;">Inventario por proveedor</div>
+          <div style="font-size:12px; color:#888;">Un archivo con hoja separada por cada proveedor</div>
+        </div>
+      </div>
+      <a href="{{ url_for('exportar_por_proveedor') }}"
+         class="btn" style="background:#6f42c1; color:#fff; width:100%; padding:10px;">
+        <i class="bi bi-download"></i> Descargar por proveedor (.xlsx)
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Exportar SQL -->
+  <div class="col-md-6">
+    <div class="card p-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:48px; height:48px; background:#e8f5e9; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-database-down" style="font-size:24px; color:#198754;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0b4f6c; font-size:16px;">Exportar base de datos SQL</div>
+          <div style="font-size:12px; color:#888;">Archivo .sql compatible con MySQL, MariaDB y SQL Server</div>
+        </div>
+      </div>
+      <div style="font-size:12px; color:#888; margin-bottom:12px; background:#f8f9fa; padding:10px; border-radius:6px;">
+        <i class="bi bi-info-circle"></i> Archivo compatible con MySQL, MariaDB y SQL Server. Puede importarse en cualquier servidor de base de datos.
+      </div>
+      <a href="{{ url_for('exportar_sql') }}"
+         class="btn" style="background:#198754; color:#fff; width:100%; padding:10px;">
+        <i class="bi bi-download"></i> Descargar base de datos (.sql)
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Actualizar link de inventario con filtro de proveedor
+  const filtro = document.getElementById('filtroProveedor');
+  const btnInv = document.getElementById('btnInventario');
+  if (filtro) {
+    filtro.addEventListener('change', function() {
+      const base = "{{ url_for('exportar_inventario') }}";
+      btnInv.href = this.value ? base + '?id_proveedor=' + this.value : base;
+    });
+  }
+
+  // Actualizar link de movimientos con fechas
+  function actualizarMovimientos() {
+    const ini = document.getElementById('fechaIni').value;
+    const fin = document.getElementById('fechaFin').value;
+    const base = "{{ url_for('exportar_movimientos') }}";
+    let params = [];
+    if (ini) params.push('fecha_ini=' + ini);
+    if (fin) params.push('fecha_fin=' + fin);
+    document.getElementById('btnMovimientos').href = base + (params.length ? '?' + params.join('&') : '');
+  }
+
+  document.getElementById('fechaIni').addEventListener('change', actualizarMovimientos);
+  document.getElementById('fechaFin').addEventListener('change', actualizarMovimientos);
+</script>
+{% endblock %}

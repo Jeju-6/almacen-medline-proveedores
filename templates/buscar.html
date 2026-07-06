@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Búsqueda: {{ q }} - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-search"></i> Resultados para "{{ q }}"
+  </h4>
+  <div style="font-size:13px; color:#888; margin-top:4px;">
+    {{ articulos|length + proveedores|length + movimientos|length }} resultado(s) encontrado(s)
+  </div>
+</div>
+
+<!-- Artículos -->
+{% if articulos %}
+<div class="card mb-4">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;">
+      <i class="bi bi-archive"></i> Artículos ({{ articulos|length }})
+    </span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Imagen</th>
+            <th>Num. parte</th>
+            <th>Nombre</th>
+            <th>Proveedor</th>
+            <th>Stock</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for art in articulos %}
+          <tr>
+            <td>
+              {% if art.imagen %}
+                <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
+                     style="width:40px; height:40px; object-fit:cover; border-radius:6px;">
+              {% else %}
+                <div style="width:40px; height:40px; background:#f0f0f0; border-radius:6px;
+                            display:flex; align-items:center; justify-content:center;">
+                  <i class="bi bi-box" style="color:#aaa;"></i>
+                </div>
+              {% endif %}
+            </td>
+            <td><code>{{ art.num_parte }}</code></td>
+            <td>
+              <a href="{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}"
+                 style="text-decoration:none; color:#0b4f6c; font-weight:600;">
+                {{ art.nombre }}
+              </a>
+              {% if art.es_critico %}
+                <span class="badge-critico ms-1">CRÍTICO</span>
+              {% endif %}
+            </td>
+            <td>{{ art.nombre_proveedor }}</td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span class="badge bg-danger">{{ art.stock_actual }}</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span class="badge bg-warning text-dark">{{ art.stock_actual }}</span>
+              {% else %}
+                <span class="badge bg-success">{{ art.stock_actual }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if art.ubicacion %}
+                <span style="background:#e8f4f8; color:#0b4f6c; padding:2px 6px;
+                             border-radius:4px; font-size:11px;">
+                  <i class="bi bi-geo-alt-fill"></i> {{ art.ubicacion }}
+                </span>
+              {% else %}
+                <span style="color:#ccc;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if art.stock_actual <= art.stock_minimo %}
+                <span style="color:#dc3545; font-size:12px;">Bajo</span>
+              {% elif art.stock_actual <= art.stock_minimo * 2 %}
+                <span style="color:#fd7e14; font-size:12px;">Precaución</span>
+              {% else %}
+                <span style="color:#198754; font-size:12px;">OK</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Proveedores -->
+{% if proveedores %}
+<div class="card mb-4">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;">
+      <i class="bi bi-people"></i> Proveedores ({{ proveedores|length }})
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for prov in proveedores %}
+      <div class="col-md-4">
+        <div style="background:#f8f9fa; border-radius:10px; padding:16px;
+                    display:flex; align-items:center; gap:12px;">
+          {% if prov.logo %}
+            <img src="{{ url_for('static', filename='uploads/' + prov.logo) }}"
+                 style="width:40px; height:40px; object-fit:contain; border-radius:6px;">
+          {% else %}
+            <div style="width:40px; height:40px; background:#e8f4f8; border-radius:50%;
+                        display:flex; align-items:center; justify-content:center;">
+              <i class="bi bi-building" style="color:#0b4f6c;"></i>
+            </div>
+          {% endif %}
+          <div>
+            <div style="font-weight:600; color:#0b4f6c;">{{ prov.nombre }}</div>
+            <div style="font-size:12px; color:#888;">{{ prov.area or 'Sin área' }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Movimientos -->
+{% if movimientos %}
+<div class="card mb-4">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;">
+      <i class="bi bi-clock-history"></i> Movimientos relacionados ({{ movimientos|length }})
+    </span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Fecha</th>
+            <th>Artículo</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Usuario</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for mov in movimientos %}
+          <tr>
+            <td>{{ mov.fecha_hora }}</td>
+            <td>
+              <a href="{{ url_for('detalle_articulo', id_articulo=mov.id_articulo) }}"
+                 style="text-decoration:none; color:#0b4f6c; font-weight:600;">
+                {{ mov.nombre_articulo }}
+              </a>
+            </td>
+            <td>
+              {% if mov.tipo == 'ENTRADA' %}
+                <span class="badge bg-success">ENTRADA</span>
+              {% else %}
+                <span class="badge bg-danger">SALIDA</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.cantidad }}</td>
+            <td>{{ mov.nombre_usuario or 'Kiosco' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Sin resultados -->
+{% if not articulos and not proveedores and not movimientos %}
+<div class="card p-5 text-center" style="color:#aaa;">
+  <i class="bi bi-search" style="font-size:48px;"></i>
+  <p class="mt-3" style="font-size:16px;">No se encontraron resultados para "{{ q }}".</p>
+  <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-secondary mt-2">
+    Volver al dashboard
+  </a>
+</div>
+{% endif %}
+
+{% endblock %}

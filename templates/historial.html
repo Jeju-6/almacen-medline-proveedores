@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Historial - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-clock-history"></i> Historial de movimientos
+  </h4>
+  <a href="{{ url_for('exportar_movimientos') }}{% if fecha_ini or fecha_fin %}?fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}{% endif %}"
+     class="btn btn-sm btn-outline-success">
+    <i class="bi bi-download"></i> Exportar Excel
+  </a>
+</div>
+
+<!-- Filtros -->
+<div class="card p-3 mb-4">
+  <form method="GET" class="row g-3 align-items-end">
+    <div class="col-md-2">
+      <label class="form-label fw-semibold" style="font-size:13px;">Fecha inicio</label>
+      <input type="date" name="fecha_ini" class="form-control form-control-sm"
+             value="{{ fecha_ini }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label fw-semibold" style="font-size:13px;">Fecha fin</label>
+      <input type="date" name="fecha_fin" class="form-control form-control-sm"
+             value="{{ fecha_fin }}">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label fw-semibold" style="font-size:13px;">Tipo</label>
+      <select name="tipo" class="form-select form-select-sm">
+        <option value="">Todos</option>
+        <option value="ENTRADA" {% if tipo == 'ENTRADA' %}selected{% endif %}>Entradas</option>
+        <option value="SALIDA" {% if tipo == 'SALIDA' %}selected{% endif %}>Salidas</option>
+      </select>
+    </div>
+    {% if session.rol == 'admin' %}
+    <div class="col-md-3">
+      <label class="form-label fw-semibold" style="font-size:13px;">Proveedor</label>
+      <select name="id_proveedor" class="form-select form-select-sm">
+        <option value="">Todos los proveedores</option>
+        {% for prov in proveedores %}
+        <option value="{{ prov.id_proveedor }}"
+          {% if id_prov_filtro == prov.id_proveedor|string %}selected{% endif %}>
+          {{ prov.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-sm" style="background:#0b4f6c; color:#fff; width:100%;">
+        <i class="bi bi-funnel"></i> Filtrar
+      </button>
+    </div>
+    <div class="col-md-1">
+      <a href="{{ url_for('historial') }}" class="btn btn-sm btn-outline-secondary" style="width:100%;">
+        <i class="bi bi-x"></i>
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- Resumen -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:28px; font-weight:700; color:#0b4f6c;">{{ movimientos|length }}</div>
+      <div style="font-size:13px; color:#888;">Total movimientos</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:28px; font-weight:700; color:#198754;">{{ total_entradas }}</div>
+      <div style="font-size:13px; color:#888;">Total entradas</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3 text-center">
+      <div style="font-size:28px; font-weight:700; color:#dc3545;">{{ total_salidas }}</div>
+      <div style="font-size:13px; color:#888;">Total salidas</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="card">
+  <div class="card-body p-0">
+    {% if movimientos %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="tablaHistorial">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Fecha</th>
+            <th>Artículo</th>
+            <th>Num. parte</th>
+            {% if session.rol == 'admin' %}<th>Proveedor</th>{% endif %}
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Usuario</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for mov in movimientos %}
+          <tr>
+            <td style="white-space:nowrap;">{{ mov.fecha_hora }}</td>
+            <td>
+              <a href="{{ url_for('detalle_articulo', id_articulo=mov.id_articulo) }}"
+                 style="text-decoration:none; color:#0b4f6c; font-weight:600;">
+                {{ mov.nombre_articulo }}
+              </a>
+            </td>
+            <td><code>{{ mov.num_parte }}</code></td>
+            {% if session.rol == 'admin' %}
+            <td>{{ mov.nombre_proveedor }}</td>
+            {% endif %}
+            <td>
+              {% if mov.tipo == 'ENTRADA' %}
+                <span class="badge bg-success">ENTRADA</span>
+              {% else %}
+                <span class="badge bg-danger">SALIDA</span>
+              {% endif %}
+            </td>
+            <td><strong>{{ mov.cantidad }}</strong></td>
+            <td>
+              {{ mov.nombre_usuario or 'Kiosco' }}
+              {% if mov.modo_kiosco %}
+                <span style="font-size:10px; color:#aaa;">(kiosco)</span>
+              {% endif %}
+            </td>
+            <td style="color:#888; font-size:12px;">{{ mov.observaciones or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-5 text-center" style="color:#aaa;">
+      <i class="bi bi-clock-history" style="font-size:48px;"></i>
+      <p class="mt-3">No hay movimientos con los filtros seleccionados.</p>
+      <a href="{{ url_for('historial') }}" class="btn btn-sm btn-outline-secondary">
+        Ver todos los movimientos
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Buscador rápido en tabla
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabla = document.getElementById('tablaHistorial');
+    if (!tabla) return;
+    const buscador = document.createElement('input');
+    buscador.type = 'text';
+    buscador.placeholder = '🔍 Buscar en resultados...';
+    buscador.className = 'form-control mb-3';
+    buscador.style.fontSize = '13px';
+    tabla.parentElement.parentElement.insertBefore(buscador, tabla.parentElement);
+    buscador.addEventListener('input', function() {
+      const filtro = this.value.toLowerCase();
+      tabla.querySelectorAll('tbody tr').forEach(fila => {
+        fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+      });
+    });
+  });
+</script>
+{% endblock %}
