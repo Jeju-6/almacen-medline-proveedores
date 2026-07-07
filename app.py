@@ -13,11 +13,25 @@ DB_CONFIG = {
     'user': os.environ.get('DB_USER', 'postgres.alvxqmzaiocvmdkjgpqh'),
     'password': os.environ.get('DB_PASSWORD', '')
 }
-import psycopg2
-import psycopg2.extras
+from psycopg2 import pool as pg_pool
+
+# Pool de conexiones global
+connection_pool = None
+
+def init_pool():
+    global connection_pool
+    connection_pool = pg_pool.ThreadedConnectionPool(
+        minconn=2,
+        maxconn=10,
+        **DB_CONFIG
+    )
 
 def get_db():
-    conn = psycopg2.connect(**DB_CONFIG)
+    global connection_pool
+    if connection_pool is None:
+        init_pool()
+    
+    conn = connection_pool.getconn()
 
     class RowWrapper:
         def __init__(self, row):
@@ -69,10 +83,9 @@ def get_db():
             self.conn.commit()
         def close(self):
             self._cursor.close()
-            self.conn.close()
+            connection_pool.putconn(self.conn)
 
     return DBWrapper(conn)
-
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 
@@ -1804,5 +1817,6 @@ def api_articulo(codigo):
 
 if __name__ == '__main__':
     init_db()
+    init_pool()
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=False, host='0.0.0.0', port=port)
