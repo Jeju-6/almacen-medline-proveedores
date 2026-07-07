@@ -28,7 +28,9 @@
     .form-extra { background: #f8f9fa; border-radius: 10px; padding: 16px; margin-top: 12px; display: none; }
     .campo-label { font-weight: 600; font-size: 14px; margin-bottom: 4px; display: block; color: #333; }
     .campo-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
-    .btn-iniciar-camara { width: 100%; padding: 16px; background: #0b4f6c; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
+    .btn-iniciar { width: 100%; padding: 16px; background: #0b4f6c; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
+    .ios-scan-btn { width: 100%; padding: 16px; background: #0b4f6c; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 8px; display: block; text-align: center; }
+    #iosFileInput { display: none; }
   </style>
 </head>
 <body>
@@ -39,18 +41,26 @@
     <p>Almacén de proveedores Medline</p>
   </div>
 
-  <!-- Botón para iniciar cámara manualmente -->
-  <div id="seccionIniciar">
-    <button class="btn-iniciar-camara" onclick="iniciarCamara()">
+  <!-- Sección Android -->
+  <div id="seccionAndroid" style="display:none;">
+    <button class="btn-iniciar" onclick="iniciarCamaraAndroid()">
       <i class="bi bi-camera"></i> Abrir cámara para escanear
+    </button>
+    <div id="reader"></div>
+    <button class="btn-reset" id="btnReset" style="display:none;" onclick="reiniciarLector()">
+      <i class="bi bi-arrow-clockwise"></i> Escanear otro artículo
     </button>
   </div>
 
-  <div id="reader"></div>
-
-  <button class="btn-reset" id="btnReset" style="display:none;" onclick="reiniciarLector()">
-    <i class="bi bi-arrow-clockwise"></i> Resetear lector / Escanear otro
-  </button>
+  <!-- Sección iOS -->
+  <div id="seccionIOS" style="display:none;">
+    <label class="ios-scan-btn" for="iosFileInput">
+      <i class="bi bi-camera"></i> Tomar foto del código QR
+    </label>
+    <input type="file" id="iosFileInput" accept="image/*" capture="environment" onchange="procesarImagenIOS(this)">
+    <div id="readerIOS"></div>
+    <div id="iosStatus" style="text-align:center; font-size:13px; color:#888; margin-top:8px;"></div>
+  </div>
 
   <div class="articulo-info" id="articuloInfo">
     <div style="font-size:13px; color:#888;">Artículo detectado:</div>
@@ -79,13 +89,10 @@
     </div>
     <label class="campo-label">Nombre de quien retira: <span style="color:red;">*</span></label>
     <input type="text" id="nombreRetira" class="campo-input" placeholder="Nombre completo">
-
     <label class="campo-label">Área / Departamento:</label>
     <input type="text" id="areaRetira" class="campo-input" placeholder="Ej: Mantenimiento, Producción...">
-
     <label class="campo-label">Motivo / Uso:</label>
     <input type="text" id="motivoRetira" class="campo-input" placeholder="Ej: Reparación de equipo...">
-
     <label class="campo-label">Observaciones adicionales:</label>
     <input type="text" id="observaciones" class="campo-input" placeholder="Opcional">
   </div>
@@ -113,16 +120,24 @@
   let tipoSeleccionado = 'SALIDA';
   let html5QrCode = null;
   let camaraActiva = false;
+  const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  function iniciarCamara() {
-    document.getElementById('seccionIniciar').style.display = 'none';
+  // Detectar iOS y mostrar sección correcta
+  document.addEventListener('DOMContentLoaded', function() {
+    if (esIOS) {
+      document.getElementById('seccionIOS').style.display = 'block';
+    } else {
+      document.getElementById('seccionAndroid').style.display = 'block';
+    }
+  });
+
+  // ─── ANDROID ──────────────────────────────────────────────────────────────
+  function iniciarCamaraAndroid() {
+    document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'none';
     document.getElementById('btnReset').style.display = 'block';
-
     html5QrCode = new Html5Qrcode("reader");
-
     Html5Qrcode.getCameras().then(cameras => {
       if (cameras && cameras.length > 0) {
-        // Buscar cámara trasera
         let camaraId = cameras[cameras.length - 1].id;
         for (let cam of cameras) {
           if (cam.label.toLowerCase().includes('back') ||
@@ -133,25 +148,36 @@
             break;
           }
         }
-
         html5QrCode.start(
           camaraId,
           { fps: 15, qrbox: { width: 250, height: 250 } },
           onScanSuccess,
           () => {}
-        ).then(() => {
-          camaraActiva = true;
-        }).catch(err => {
-          mostrarStatus('Error al iniciar cámara: ' + err, 'error');
-        });
-      } else {
-        mostrarStatus('No se encontró ninguna cámara.', 'error');
+        ).then(() => { camaraActiva = true; })
+        .catch(err => mostrarStatus('Error al iniciar cámara: ' + err, 'error'));
       }
-    }).catch(err => {
-      mostrarStatus('Error al acceder a la cámara. Verifica los permisos.', 'error');
-    });
+    }).catch(() => mostrarStatus('Error al acceder a la cámara.', 'error'));
   }
 
+  // ─── iOS ──────────────────────────────────────────────────────────────────
+  function procesarImagenIOS(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    document.getElementById('iosStatus').textContent = 'Procesando imagen...';
+    const html5QrCodeIOS = new Html5Qrcode("readerIOS");
+    html5QrCodeIOS.scanFile(file, true)
+      .then(decodedText => {
+        document.getElementById('iosStatus').textContent = '';
+        onScanSuccess(decodedText);
+        input.value = '';
+      })
+      .catch(() => {
+        document.getElementById('iosStatus').textContent = 'No se pudo leer el QR. Intenta de nuevo.';
+        input.value = '';
+      });
+  }
+
+  // ─── COMÚN ────────────────────────────────────────────────────────────────
   function onScanSuccess(decodedText) {
     if (codigoDetectado === decodedText) return;
     codigoDetectado = decodedText;
@@ -193,13 +219,12 @@
     document.getElementById('motivoRetira').value = '';
     document.getElementById('observaciones').value = '';
 
-    if (html5QrCode && camaraActiva) {
+    if (!esIOS && html5QrCode && camaraActiva) {
       html5QrCode.stop().then(() => {
         camaraActiva = false;
-        iniciarCamara();
-      }).catch(() => iniciarCamara());
-    } else {
-      iniciarCamara();
+        document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'block';
+        document.getElementById('btnReset').style.display = 'none';
+      }).catch(() => {});
     }
   }
 
@@ -225,7 +250,6 @@
       document.getElementById('nombreRetira').focus();
       return;
     }
-
     if (tipoSeleccionado === 'SALIDA' && stockActual > 0) {
       const porcentaje = (cantidad / stockActual) * 100;
       if (porcentaje >= 50) {
@@ -233,13 +257,11 @@
         if (!confirmar) return;
       }
     }
-
     const areaRetira = document.getElementById('areaRetira').value.trim();
     const motivoRetira = document.getElementById('motivoRetira').value.trim();
     const obsExtra = document.getElementById('observaciones').value.trim();
-
     const observacionesCompletas = [
-      nombreRetira ? `Retira: ${nombreRetira}` : '',
+      `Retira: ${nombreRetira}`,
       areaRetira ? `Área: ${areaRetira}` : '',
       motivoRetira ? `Motivo: ${motivoRetira}` : '',
       obsExtra ? obsExtra : ''
@@ -259,9 +281,7 @@
     .then(r => r.json())
     .then(data => {
       mostrarStatus(data.message, data.status);
-      if (data.status === 'success') {
-        setTimeout(() => reiniciarLector(), 2500);
-      }
+      if (data.status === 'success') setTimeout(() => reiniciarLector(), 2500);
     });
   }
 
