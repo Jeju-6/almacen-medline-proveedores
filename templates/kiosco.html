@@ -54,12 +54,30 @@
 
   <!-- Sección iOS -->
   <div id="seccionIOS" style="display:none;">
-    <label class="ios-scan-btn" for="iosFileInput">
-      <i class="bi bi-camera"></i> Tomar foto del código QR
-    </label>
-    <input type="file" id="iosFileInput" accept="image/*" capture="environment" onchange="procesarImagenIOS(this)">
-    <div id="readerIOS"></div>
-    <div id="iosStatus" style="text-align:center; font-size:13px; color:#888; margin-top:8px;"></div>
+    <div style="background:#f0f8fc; border-radius:12px; padding:20px; text-align:center; margin-bottom:12px;">
+      <i class="bi bi-camera" style="font-size:48px; color:#0b4f6c;"></i>
+      <div style="font-weight:700; color:#0b4f6c; font-size:16px; margin:12px 0 8px;">
+        Escanea con tu cámara
+      </div>
+      <div style="font-size:13px; color:#666; line-height:1.6;">
+        En iPhone, abre la <strong>cámara nativa</strong> y apunta al código QR del artículo. 
+        Se abrirá automáticamente el formulario de registro.
+      </div>
+      <div style="margin-top:16px; padding:12px; background:#fff; border-radius:8px; border:1px solid #ddd;">
+        <i class="bi bi-info-circle" style="color:#0b4f6c;"></i>
+        <span style="font-size:12px; color:#888;">
+          También puedes ingresar el número de parte manualmente:
+        </span>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input type="text" id="iosManualCodigo" class="campo-input" 
+                 placeholder="Ej: 5250" style="margin-bottom:0; flex:1;">
+          <button onclick="buscarManualIOS()" 
+                  style="padding:10px 16px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+            Buscar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="articulo-info" id="articuloInfo">
@@ -175,6 +193,15 @@
         document.getElementById('iosStatus').textContent = 'No se pudo leer el QR. Intenta de nuevo.';
         input.value = '';
       });
+  }
+
+  function buscarManualIOS() {
+    const codigo = document.getElementById('iosManualCodigo').value.trim();
+    if (!codigo) {
+      mostrarStatus('Ingresa un número de parte.', 'error');
+      return;
+    }
+    window.location.href = '/scan/' + encodeURIComponent(codigo);
   }
 
   // ─── COMÚN ────────────────────────────────────────────────────────────────
