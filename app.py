@@ -1810,10 +1810,13 @@ def buscar():
 @app.route('/scan/<codigo>')
 def scan_qr(codigo):
     db = get_db()
-    articulo = db.execute(
-        'SELECT a.*, p.nombre as nombre_proveedor FROM articulos a JOIN proveedores p ON a.id_proveedor = p.id_proveedor WHERE a.codigo_qr = %s AND a.activo = 1',
-        (codigo,)
-    ).fetchone()
+    # Buscar por codigo_qr o por num_parte
+    articulo = db.execute('''
+        SELECT a.*, p.nombre as nombre_proveedor 
+        FROM articulos a 
+        JOIN proveedores p ON a.id_proveedor = p.id_proveedor 
+        WHERE (a.codigo_qr = %s OR a.num_parte = %s) AND a.activo = 1
+    ''', (codigo, codigo)).fetchone()
     db.close()
     if not articulo:
         return render_template('scan_notfound.html', codigo=codigo)
