@@ -93,15 +93,13 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 
 # ─── CONFIGURACIÓN DE CORREO ──────────────────────────────────────────────────
+app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
-app.config['MAIL_USERNAME'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
-app.config['MAIL_PASSWORD'] = os.environ.get('dqhubredptxbabur', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
-mail = Mail(app)
-
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', '')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', '')
 @app.context_processor
 def inject_now():
     alertas_count = 0
@@ -694,7 +692,7 @@ def estadisticas():
                    SUM(CASE WHEN m.tipo='ENTRADA' THEN m.cantidad ELSE 0 END) as total_entradas
             FROM movimientos m
             JOIN articulos art ON m.id_articulo = art.id_articulo
-            GROUP BY art.id_articulo
+            GROUP BY art.id_articulo, art.nombre, art.unidad_medida
             ORDER BY total_salidas DESC LIMIT 10
         ''').fetchall()
 
@@ -722,7 +720,7 @@ def estadisticas():
             FROM movimientos m
             JOIN articulos art ON m.id_articulo = art.id_articulo
             WHERE art.id_proveedor = ?
-            GROUP BY art.id_articulo
+            GROUP BY art.id_articulo, art.nombre, art.unidad_medida
             ORDER BY total_salidas DESC LIMIT 10
         ''', (id_proveedor,)).fetchall()
 
