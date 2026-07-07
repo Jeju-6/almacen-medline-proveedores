@@ -687,7 +687,7 @@ def estadisticas():
                    SUM(CASE WHEN tipo='SALIDA' THEN cantidad ELSE 0 END) as salidas,
                    SUM(CASE WHEN tipo='ENTRADA' THEN cantidad ELSE 0 END) as entradas
             FROM movimientos
-            GROUP BY mes ORDER BY fecha_hora ASC LIMIT 12
+            GROUP BY to_char(fecha_hora, 'MM/YYYY') ORDER BY MIN(fecha_hora) ASC LIMIT 12
         ''').fetchall()
 
         por_proveedor = db.execute('''
@@ -717,7 +717,7 @@ def estadisticas():
             FROM movimientos m
             JOIN articulos art ON m.id_articulo = art.id_articulo
             WHERE art.id_proveedor = ?
-            GROUP BY mes ORDER BY fecha_hora ASC LIMIT 12
+            GROUP BY to_char(fecha_hora, 'MM/YYYY') ORDER BY MIN(fecha_hora) ASC LIMIT 12
         ''', (id_proveedor,)).fetchall()
 
         por_proveedor = []
