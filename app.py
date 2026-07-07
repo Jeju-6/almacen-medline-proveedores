@@ -1804,6 +1804,79 @@ def buscar():
     return render_template('buscar.html', q=q, articulos=articulos,
                            proveedores=proveedores, movimientos=movimientos)
 
+
+# ─── ESCANEO QR DIRECTO ───────────────────────────────────────────────────────
+
+@app.route('/scan/<codigo>')
+def scan_qr(codigo):
+    db = get_db()
+    articulo = db.execute(
+        'SELECT a.*, p.nombre as nombre_proveedor FROM articulos a JOIN proveedores p ON a.id_proveedor = p.id_proveedor WHERE a.codigo_qr = %s AND a.activo = 1',
+        (codigo,)
+    ).fetchone()
+    db.close()
+    if not articulo:
+        return render_template('scan_notfound.html', codigo=codigo)
+    return render_template('scan_formulario.html', articulo=articulo)
+
+@app.route('/scan/registrar', methods=['POST'])
+def scan_registrar():
+    data = request.get_json()
+    codigo_qr = data.get('codigo_qr')
+    tipo = data.get('tipo', 'SALIDA')
+    cantidad = int(data.get('cantidad', 1))
+    observaciones = data.get('observaciones', '')
+
+    db = get_db()
+    articulo = db.execute(
+        'SELECT * FROM articulos WHERE codigo_qr = %s AND activo = 1', (codigo_qr,)
+    ).fetchone()
+
+    if not articulo:
+        db.close()
+        return jsonify({'status': 'error', 'message': 'Artículo no encontrado.'})
+
+    if tipo == 'SALIDA' and articulo['stock_actual'] < cantidad:
+        db.close()
+        return jsonify({'status': 'error', 'message': 'Stock insuficiente.'})
+
+    db.execute('''
+        INSERT INTO movimientos (id_articulo, tipo, cantidad, observaciones, modo_kiosco)
+        VALUES (%s, %s, %s, %s, 1)
+    ''', (articulo['id_articulo'], tipo, cantidad, observaciones))
+
+    nuevo_stock = articulo['stock_actual'] + cantidad if tipo == 'ENTRADA' else articulo['stock_actual'] - cantidad
+    db.execute('UPDATE articulos SET stock_actual = %s WHERE id_articulo = %s',
+               (nuevo_stock, articulo['id_articulo']))
+
+    if nuevo_stock <= articulo['stock_minimo']:
+        db.execute('INSERT INTO alertas (id_articulo, tipo_alerta) VALUES (%s, %s)',
+                   (articulo['id_articulo'], 'STOCK_MINIMO'))
+
+    db.commit()
+    db.close()
+    return jsonify({
+        'status': 'success',
+        'message': f'Registrado correctamente. Stock actual: {nuevo_stock}',
+        'stock_actual': nuevo_stock
+    })
+
+@app.route('/articulos/actualizar_qr')
+@login_requerido
+@solo_admin
+def actualizar_qr():
+    base_url = request.host_url.rstrip('/')
+    db = get_db()
+    articulos = db.execute('SELECT * FROM articulos WHERE activo=1').fetchall()
+    for art in articulos:
+        nuevo_qr = f"{base_url}/scan/{art['num_parte']}"
+        db.execute('UPDATE articulos SET codigo_qr = %s WHERE id_articulo = %s',
+                   (nuevo_qr, art['id_articulo']))
+    db.commit()
+    db.close()
+    flash(f'QR actualizados para {len(articulos)} artículos.', 'success')
+    return redirect(url_for('articulos'))
+
 # ─── INICIO ───────────────────────────────────────────────────────────────────
 
 @app.route('/api/articulo/<codigo>')

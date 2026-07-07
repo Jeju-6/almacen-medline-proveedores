@@ -26,6 +26,12 @@
     <i class="bi bi-plus-lg"></i> Nuevo
   </a>
   {% endif %}
+  {% if session.rol == 'admin' %}
+  <a href="{{ url_for('actualizar_qr') }}" class="btn btn-sm btn-outline-success ms-2"
+     onclick="return confirm('¿Actualizar todos los QR para que apunten al sistema en línea?')">
+    <i class="bi bi-qr-code"></i> Actualizar QR
+  </a>
+  {% endif %}
 </div>
 
 <!-- Buscador -->
