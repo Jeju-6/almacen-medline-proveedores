@@ -103,9 +103,33 @@
   let codigoDetectado = '';
   let stockActual = 0;
   let tipoSeleccionado = 'SALIDA';
+  let html5QrCode = null;
 
-  // Seleccionar SALIDA por defecto
   seleccionarTipo('SALIDA');
+
+  // Iniciar cámara trasera automáticamente
+  function iniciarCamara() {
+    html5QrCode = new Html5Qrcode("reader");
+    const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+    
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      onScanSuccess,
+      () => {}
+    ).catch(err => {
+      // Si falla con trasera, intentar con cualquier cámara
+      html5QrCode.start(
+        { facingMode: "user" },
+        config,
+        onScanSuccess,
+        () => {}
+      ).catch(err2 => {
+        document.getElementById('reader').innerHTML = 
+          '<div style="padding:20px;text-align:center;color:#888;">No se pudo acceder a la cámara.<br>Verifica los permisos.</div>';
+      });
+    });
+  }
 
   function onScanSuccess(decodedText) {
     if (codigoDetectado === decodedText) return;
@@ -136,10 +160,31 @@
       });
   }
 
-  // Iniciar scanner con cámara trasera
-  let scanner = new Html5QrcodeScanner("reader", {
-    fps: 15,
-    qrbox: 250,
-    facingMode: "environment"
-  });
-  scanner.render(onScanSuccess, () =>
+  function reiniciarLector() {
+    codigoDetectado = '';
+    stockActual = 0;
+    document.getElementById('articuloInfo').style.display = 'none';
+    document.getElementById('formExtra').style.display = 'none';
+    document.getElementById('statusBox').style.display = 'none';
+    document.getElementById('cantidad').value = '1';
+    document.getElementById('nombreRetira').value = '';
+    document.getElementById('areaRetira').value = '';
+    document.getElementById('motivoRetira').value = '';
+    document.getElementById('observaciones').value = '';
+
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        iniciarCamara();
+      }).catch(() => iniciarCamara());
+    }
+  }
+
+  function seleccionarTipo(tipo) {
+    tipoSeleccionado = tipo;
+    document.getElementById('btnEntrada').classList.toggle('activo', tipo === 'ENTRADA');
+    document.getElementById('btnSalida').classList.toggle('activo', tipo === 'SALIDA');
+  }
+
+  function registrar() {
+    if (!codigoDetectado) {
+      mostrarStatus('Por favor escanea un código QR primero.', 'error');
