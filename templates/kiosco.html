@@ -9,11 +9,11 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body { background: #0b4f6c; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .kiosco-card { background: #fff; border-radius: 16px; padding: 30px; width: 100%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
-    .kiosco-header { text-align: center; margin-bottom: 24px; }
+    .kiosco-card { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); }
+    .kiosco-header { text-align: center; margin-bottom: 20px; }
     .kiosco-header h4 { color: #0b4f6c; font-weight: 700; margin: 0; }
     .kiosco-header p { color: #888; font-size: 13px; margin: 4px 0 0; }
-    #reader { width: 100%; border: 2px dashed #0b4f6c; border-radius: 10px; overflow: hidden; background: #f8f9fa; margin-bottom: 16px; }
+    #reader { width: 100%; border: 2px dashed #0b4f6c; border-radius: 10px; overflow: hidden; background: #f8f9fa; margin-bottom: 12px; }
     .btn-tipo { width: 48%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 10px; border: 2px solid; cursor: pointer; transition: all 0.2s; }
     .btn-entrada { border-color: #198754; color: #198754; background: #fff; }
     .btn-entrada.activo { background: #198754; color: #fff; }
@@ -26,6 +26,9 @@
     .status-success { background: #d1e7dd; color: #0f5132; }
     .status-error { background: #f8d7da; color: #842029; }
     .articulo-info { background: #f0f8fc; border-radius: 8px; padding: 12px; margin-bottom: 12px; display: none; }
+    .form-extra { background: #f8f9fa; border-radius: 10px; padding: 16px; margin-top: 12px; display: none; }
+    .form-label { font-weight: 600; font-size: 14px; margin-bottom: 4px; display: block; }
+    .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -45,6 +48,7 @@
     <div style="font-size:13px; color:#888;">Artículo detectado:</div>
     <div id="articuloNombre" style="font-weight:700; color:#0b4f6c; font-size:16px;"></div>
     <div id="articuloStock" style="font-size:13px; color:#555;"></div>
+    <div id="articuloUbicacion" style="font-size:12px; color:#888; margin-top:4px;"></div>
   </div>
 
   <div class="d-flex justify-content-between gap-2 mb-3 mt-3">
@@ -57,15 +61,26 @@
   </div>
 
   <div>
-    <label style="font-weight:600; font-size:14px;">Cantidad:</label>
-    <input type="number" id="cantidad" value="1" min="1"
-      style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:16px; margin-top:6px;">
+    <label class="form-label">Cantidad:</label>
+    <input type="number" id="cantidad" value="1" min="1" class="form-control">
   </div>
 
-  <div>
-    <label style="font-weight:600; font-size:14px; margin-top:12px; display:block;">Observaciones (opcional):</label>
-    <input type="text" id="observaciones" placeholder="Ej: Turno mañana"
-      style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:14px; margin-top:6px;">
+  <!-- Formulario extra de datos -->
+  <div class="form-extra" id="formExtra">
+    <div style="font-weight:600; color:#0b4f6c; margin-bottom:10px; font-size:14px;">
+      <i class="bi bi-person-lines-fill"></i> Datos del movimiento
+    </div>
+    <label class="form-label">Nombre de quien retira: <span style="color:red;">*</span></label>
+    <input type="text" id="nombreRetira" class="form-control" placeholder="Nombre completo">
+
+    <label class="form-label">Área / Departamento:</label>
+    <input type="text" id="areaRetira" class="form-control" placeholder="Ej: Mantenimiento, Producción...">
+
+    <label class="form-label">Motivo / Uso:</label>
+    <input type="text" id="motivoRetira" class="form-control" placeholder="Ej: Reparación de equipo...">
+
+    <label class="form-label">Observaciones adicionales:</label>
+    <input type="text" id="observaciones" class="form-control" placeholder="Opcional">
   </div>
 
   <button class="btn-registrar" onclick="registrar()">
@@ -74,9 +89,9 @@
 
   <div class="status-box" id="statusBox"></div>
 
-<div style="text-align:center; margin-top:20px; display:flex; justify-content:center; gap:20px;">
+  <div style="text-align:center; margin-top:20px; display:flex; justify-content:center; gap:20px;">
     <a href="/login" style="font-size:12px; color:#aaa; text-decoration:none;">
-      <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión con cuenta
+      <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
     </a>
     <a href="/dashboard" style="font-size:12px; color:#aaa; text-decoration:none;">
       <i class="bi bi-speedometer2"></i> Ir al dashboard
@@ -87,11 +102,15 @@
 <script>
   let codigoDetectado = '';
   let stockActual = 0;
-  let tipoSeleccionado = 'ENTRADA';
+  let tipoSeleccionado = 'SALIDA';
+
+  // Seleccionar SALIDA por defecto
+  seleccionarTipo('SALIDA');
 
   function onScanSuccess(decodedText) {
+    if (codigoDetectado === decodedText) return;
     codigoDetectado = decodedText;
-    if (navigator.vibrate) navigator.vibrate(100);
+    if (navigator.vibrate) navigator.vibrate(150);
     buscarArticulo(decodedText);
   }
 
@@ -103,82 +122,24 @@
           stockActual = data.stock_actual;
           document.getElementById('articuloNombre').textContent = data.nombre;
           document.getElementById('articuloStock').textContent = 'Stock actual: ' + data.stock_actual + ' ' + data.unidad_medida;
+          if (data.ubicacion) {
+            document.getElementById('articuloUbicacion').textContent = '📍 ' + data.ubicacion;
+          }
           document.getElementById('articuloInfo').style.display = 'block';
+          document.getElementById('formExtra').style.display = 'block';
+          document.getElementById('nombreRetira').focus();
         } else {
-          stockActual = 0;
           document.getElementById('articuloInfo').style.display = 'none';
+          document.getElementById('formExtra').style.display = 'none';
+          mostrarStatus('Artículo no encontrado en el sistema.', 'error');
         }
       });
   }
 
-  let scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
-  scanner.render(onScanSuccess, () => {});
-
-  function reiniciarLector() {
-    codigoDetectado = '';
-    document.getElementById('articuloInfo').style.display = 'none';
-    document.getElementById('statusBox').style.display = 'none';
-    document.getElementById('cantidad').value = '1';
-    document.getElementById('observaciones').value = '';
-    scanner.clear().then(() => {
-      scanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: 250 });
-      scanner.render(onScanSuccess, () => {});
-    }).catch(() => {});
-  }
-
-  function seleccionarTipo(tipo) {
-    tipoSeleccionado = tipo;
-    document.getElementById('btnEntrada').classList.toggle('activo', tipo === 'ENTRADA');
-    document.getElementById('btnSalida').classList.toggle('activo', tipo === 'SALIDA');
-  }
-
-  function registrar() {
-    if (!codigoDetectado) {
-      mostrarStatus('Por favor escanea un código QR primero.', 'error');
-      return;
-    }
-    const cantidad = parseInt(document.getElementById('cantidad').value);
-    if (!cantidad || cantidad < 1) {
-      mostrarStatus('La cantidad debe ser mayor a 0.', 'error');
-      return;
-    }
-
-    // Confirmación si es salida grande
-    if (tipoSeleccionado === 'SALIDA' && stockActual > 0) {
-      const porcentaje = (cantidad / stockActual) * 100;
-      if (porcentaje >= 50) {
-        const confirmar = confirm(
-          `⚠️ Estás sacando ${cantidad} de ${stockActual} unidades (${Math.round(porcentaje)}% del stock).\n\n¿Confirmas esta salida?`
-        );
-        if (!confirmar) return;
-      }
-    }
-    fetch('/registrar_movimiento', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        codigo_qr: codigoDetectado,
-        tipo: tipoSeleccionado,
-        cantidad: cantidad,
-        observaciones: document.getElementById('observaciones').value,
-        modo_kiosco: 1
-      })
-    })
-    .then(r => r.json())
-    .then(data => {
-      mostrarStatus(data.message, data.status);
-      if (data.status === 'success') {
-        setTimeout(() => reiniciarLector(), 2500);
-      }
-    });
-  }
-
-  function mostrarStatus(msg, tipo) {
-    const box = document.getElementById('statusBox');
-    box.textContent = msg;
-    box.className = 'status-box status-' + tipo;
-    box.style.display = 'block';
-  }
-</script>
-</body>
-</html>
+  // Iniciar scanner con cámara trasera
+  let scanner = new Html5QrcodeScanner("reader", {
+    fps: 15,
+    qrbox: 250,
+    facingMode: "environment"
+  });
+  scanner.render(onScanSuccess, () =>
