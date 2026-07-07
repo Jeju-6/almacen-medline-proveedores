@@ -13,6 +13,9 @@ DB_CONFIG = {
     'user': os.environ.get('DB_USER', 'postgres.alvxqmzaiocvmdkjgpqh'),
     'password': os.environ.get('DB_PASSWORD', '')
 }
+
+import psycopg2
+import psycopg2.extras
 from psycopg2 import pool as pg_pool
 
 # Pool de conexiones global
