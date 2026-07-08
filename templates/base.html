@@ -187,6 +187,52 @@
 
   {% block extra_css %}{% endblock %}
 </head>
+
+<!-- Botón flotante QR -->
+{% if session.usuario_id %}
+<div style="position:fixed; bottom:24px; right:24px; z-index:999;">
+  <button onclick="document.getElementById('modalQR').style.display='flex'"
+    style="width:60px; height:60px; border-radius:50%; background:#0b4f6c; color:#fff;
+           border:none; box-shadow:0 4px 16px rgba(0,0,0,0.3); font-size:24px; cursor:pointer;">
+    <i class="bi bi-qr-code-scan"></i>
+  </button>
+</div>
+
+<div id="modalQR" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:flex-end; justify-content:center;">
+  <div style="background:#fff; border-radius:20px 20px 0 0; padding:24px; width:100%; max-width:480px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <span style="font-weight:700; color:#0b4f6c; font-size:16px;">
+        <i class="bi bi-qr-code-scan"></i> Buscar artículo
+      </span>
+      <button onclick="document.getElementById('modalQR').style.display='none'"
+              style="background:none; border:none; font-size:22px; color:#888; cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:13px; color:#666; margin-bottom:12px;">
+      Ingresa el número de parte o escanea el QR con la cámara nativa de tu dispositivo.
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="qrManualInput" placeholder="Ej: 5250"
+             style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
+             onkeypress="if(event.key==='Enter') buscarQRManual()">
+      <button onclick="buscarQRManual()"
+              style="padding:12px 20px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+        Buscar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function buscarQRManual() {
+    var codigo = document.getElementById('qrManualInput').value.trim();
+    if (codigo) {
+      document.getElementById('modalQR').style.display = 'none';
+      window.location.href = '/scan/' + encodeURIComponent(codigo);
+    }
+  }
+</script>
+{% endif %}
+
 <body>
 
 <div class="mobile-topbar">
