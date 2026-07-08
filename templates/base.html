@@ -213,21 +213,15 @@
       </button>
     </div>
 
-    <!-- iOS: escáner por foto + manual -->
+    <!-- iOS: instrucciones + manual -->
     <div id="scanFloatIOS" style="display:none;">
-      <div style="margin-bottom:16px;">
-        <label style="width:100%; padding:16px; background:#0b4f6c; color:#fff; border-radius:10px;
-                      font-size:16px; font-weight:600; cursor:pointer; display:block; text-align:center;">
-          <i class="bi bi-camera"></i> Abrir cámara y escanear QR
-          <input type="file" id="iosFloatInput" accept="image/*" capture="environment"
-                 style="display:none;" onchange="procesarIOSFloat(this)">
-        </label>
-        <div id="iosFloatStatus" style="text-align:center; font-size:12px; color:#888; margin-top:8px;"></div>
-        <div id="iosFloatReader" style="display:none;"></div>
+      <div style="text-align:center; padding:12px; background:#f0f8fc; border-radius:10px; margin-bottom:16px;">
+        <i class="bi bi-camera" style="font-size:36px; color:#0b4f6c;"></i>
+        <div style="font-size:13px; color:#666; margin-top:8px;">
+          Usa la <strong>cámara nativa</strong> de tu iPhone para escanear el QR del artículo.
+        </div>
       </div>
-      <div style="font-size:13px; color:#888; margin-bottom:8px; font-weight:600;">
-        O ingresa el número de parte:
-      </div>
+      <div style="font-size:13px; color:#888; margin-bottom:8px; font-weight:600;">O busca por número de parte:</div>
       <div style="display:flex; gap:8px;">
         <input type="text" id="floatManualCodigo" placeholder="Ej: 5250"
                style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;">
@@ -237,6 +231,8 @@
         </button>
       </div>
     </div>
+  </div>
+</div>
 
 <script>
   const esIOSFloat = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -318,45 +314,6 @@
     cerrarScanFloat();
     window.location.href = '/scan/' + encodeURIComponent(codigo);
   }
-
-  function procesarIOSFloat(input) {
-    if (!input.files || !input.files[0]) return;
-    document.getElementById('iosFloatStatus').textContent = 'Procesando...';
-    const file = input.files[0];
-
-    // Asegurar que Html5Qrcode esté cargado
-    function escanear() {
-      const readerDiv = document.getElementById('iosFloatReader');
-      readerDiv.style.display = 'block';
-      const scanner = new Html5Qrcode("iosFloatReader");
-      scanner.scanFile(file, true)
-        .then(decodedText => {
-          document.getElementById('iosFloatStatus').textContent = '✅ QR detectado';
-          cerrarScanFloat();
-          // Extraer solo el código del URL si viene como URL completa
-          let codigo = decodedText;
-          if (decodedText.includes('/scan/')) {
-            codigo = decodedText.split('/scan/').pop();
-          }
-          window.location.href = '/scan/' + encodeURIComponent(codigo);
-        })
-        .catch(() => {
-          document.getElementById('iosFloatStatus').textContent = 'No se pudo leer el QR. Intenta de nuevo con mejor iluminación.';
-          readerDiv.style.display = 'none';
-          input.value = '';
-        });
-    }
-
-    if (typeof Html5Qrcode === 'undefined') {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-      script.onload = escanear;
-      document.head.appendChild(script);
-    } else {
-      escanear();
-    }
-  }
-
 </script>
 
 <body>
