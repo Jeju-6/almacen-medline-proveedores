@@ -153,26 +153,35 @@
   function iniciarCamaraAndroid() {
     document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'none';
     document.getElementById('btnReset').style.display = 'block';
+    document.getElementById('reader').innerHTML = '';
+    
     html5QrCode = new Html5Qrcode("reader");
+    
+    const config = { 
+      fps: 10, 
+      qrbox: { width: 250, height: 250 },
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    };
+
     Html5Qrcode.getCameras().then(cameras => {
       if (cameras && cameras.length > 0) {
         let camaraId = cameras[cameras.length - 1].id;
         for (let cam of cameras) {
-          if (cam.label.toLowerCase().includes('back') ||
-              cam.label.toLowerCase().includes('trasera') ||
-              cam.label.toLowerCase().includes('rear') ||
-              cam.label.toLowerCase().includes('environment')) {
+          const label = cam.label.toLowerCase();
+          if (label.includes('back') || label.includes('trasera') || label.includes('rear')) {
             camaraId = cam.id;
             break;
           }
         }
-        html5QrCode.start(
-          camaraId,
-          { fps: 15, qrbox: { width: 250, height: 250 } },
-          onScanSuccess,
-          () => {}
-        ).then(() => { camaraActiva = true; })
-        .catch(err => mostrarStatus('Error al iniciar cámara: ' + err, 'error'));
+        html5QrCode.start(camaraId, config, onScanSuccess, () => {})
+          .then(() => { camaraActiva = true; })
+          .catch(err => {
+            // Si falla con ID específico intentar con facingMode
+            html5QrCode.start(
+              { facingMode: "environment" }, config, onScanSuccess, () => {}
+            ).then(() => { camaraActiva = true; })
+            .catch(() => mostrarStatus('Error al iniciar cámara.', 'error'));
+          });
       }
     }).catch(() => mostrarStatus('Error al acceder a la cámara.', 'error'));
   }
