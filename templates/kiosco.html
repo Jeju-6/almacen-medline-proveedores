@@ -54,17 +54,11 @@
 
   <!-- Sección iOS -->
   <div id="seccionIOS" style="display:none;">
-    <div style="margin-bottom:16px;">
-      <label style="width:100%; padding:16px; background:#0b4f6c; color:#fff; border-radius:10px;
-                    font-size:16px; font-weight:600; cursor:pointer; display:block; text-align:center;">
-        <i class="bi bi-camera"></i> Abrir cámara y escanear QR
-        <input type="file" id="iosKioscoInput" accept="image/*" capture="environment"
-               style="display:none;" onchange="procesarIOSKiosco(this)">
-      </label>
-      <div id="iosKioscoStatus" style="text-align:center; font-size:12px; color:#888; margin-top:8px;"></div>
-      <div id="iosKioscoReader" style="display:none;"></div>
-    </div>
-    <div style="font-size:13px; color:#888; margin-bottom:8px; font-weight:600; text-align:center;">
+    <div id="readerIOS" style="width:100%; min-height:250px; border:2px dashed #0b4f6c; border-radius:10px; overflow:hidden; background:#f8f9fa; margin-bottom:12px;"></div>
+    <button class="btn-reset" onclick="reiniciarLectorIOS()">
+      <i class="bi bi-arrow-clockwise"></i> Resetear lector
+    </button>
+    <div style="font-size:13px; color:#888; margin:12px 0 8px; font-weight:600; text-align:center;">
       — o ingresa el número de parte —
     </div>
     <div style="display:flex; gap:8px;">
@@ -145,8 +139,16 @@
     } else {
       document.getElementById('seccionAndroid').style.display = 'block';
     }
+    
   });
-
+  document.addEventListener('DOMContentLoaded', function() {
+    if (esIOS) {
+      document.getElementById('seccionIOS').style.display = 'block';
+      iniciarCamaraIOS();
+    } else {
+      document.getElementById('seccionAndroid').style.display = 'block';
+    }
+  });
   // ─── ANDROID ──────────────────────────────────────────────────────────────
   function iniciarCamaraAndroid() {
     document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'none';
@@ -176,66 +178,57 @@
   }
 
   // ─── iOS ──────────────────────────────────────────────────────────────────
-  function procesarImagenIOS(input) {
-    if (!input.files || !input.files[0]) return;
-    const file = input.files[0];
-    document.getElementById('iosStatus').textContent = 'Procesando imagen...';
-    const html5QrCodeIOS = new Html5Qrcode("readerIOS");
-    html5QrCodeIOS.scanFile(file, true)
-      .then(decodedText => {
-        document.getElementById('iosStatus').textContent = '';
-        onScanSuccess(decodedText);
-        input.value = '';
-      })
-      .catch(() => {
-        document.getElementById('iosStatus').textContent = 'No se pudo leer el QR. Intenta de nuevo.';
-        input.value = '';
-      });
-  }
+  let scannerIOS = null;
+  let scannerIOSActivo = false;
 
-  function buscarManualIOS() {
-    const codigo = document.getElementById('iosManualCodigo').value.trim();
-    if (!codigo) {
-      mostrarStatus('Ingresa un número de parte.', 'error');
-      return;
-    }
-    window.location.href = '/scan/' + encodeURIComponent(codigo);
-  }
-
-function procesarIOSKiosco(input) {
-    if (!input.files || !input.files[0]) return;
-    document.getElementById('iosKioscoStatus').textContent = 'Procesando...';
-    const file = input.files[0];
-
-    function escanear() {
-      const readerDiv = document.getElementById('iosKioscoReader');
-      readerDiv.style.display = 'block';
-      const scanner = new Html5Qrcode("iosKioscoReader");
-      scanner.scanFile(file, true)
-        .then(decodedText => {
-          document.getElementById('iosKioscoStatus').textContent = '✅ QR detectado';
-          readerDiv.style.display = 'none';
-          input.value = '';
-          let codigo = decodedText;
-          if (decodedText.includes('/scan/')) {
-            codigo = decodedText.split('/scan/').pop();
-          }
-          window.location.replace('/scan/' + encodeURIComponent(codigo));
-        })
-        .catch(() => {
-          document.getElementById('iosKioscoStatus').textContent = 'No se pudo leer. Intenta con mejor iluminación.';
-          readerDiv.style.display = 'none';
-          input.value = '';
-        });
-    }
-
+  function iniciarCamaraIOS() {
     if (typeof Html5Qrcode === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-      script.onload = escanear;
+      script.onload = () => arrancarCamaraIOS();
       document.head.appendChild(script);
     } else {
-      escanear();
+      arrancarCamaraIOS();
+    }
+  }
+
+  function arrancarCamaraIOS() {
+    scannerIOS = new Html5Qrcode("readerIOS");
+    Html5Qrcode.getCameras().then(cameras => {
+      if (cameras && cameras.length > 0) {
+        let camaraId = cameras[cameras.length - 1].id;
+        for (let cam of cameras) {
+          const label = cam.label.toLowerCase();
+          if (label.includes('back') || label.includes('trasera') || label.includes('rear')) {
+            camaraId = cam.id;
+            break;
+          }
+        }
+        scannerIOS.start(
+          camaraId,
+          { fps: 15, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            let codigo = decodedText;
+            if (decodedText.includes('/scan/')) {
+              codigo = decodedText.split('/scan/').pop();
+            }
+            window.location.replace('/scan/' + encodeURIComponent(codigo));
+          },
+          () => {}
+        ).then(() => { scannerIOSActivo = true; });
+      }
+    }).catch(() => {
+      document.getElementById('readerIOS').innerHTML =
+        '<div style="padding:20px;text-align:center;color:#888;">No se pudo acceder a la cámara.</div>';
+    });
+  }
+
+  function reiniciarLectorIOS() {
+    if (scannerIOS && scannerIOSActivo) {
+      scannerIOS.stop().then(() => {
+        scannerIOSActivo = false;
+        arrancarCamaraIOS();
+      });
     }
   }
 
