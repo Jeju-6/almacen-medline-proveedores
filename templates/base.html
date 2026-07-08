@@ -282,7 +282,7 @@
             detenerCamaraModal();
             cerrarModalQR();
             var codigo = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop() : decodedText;
-            window.location.href = '/scan/' + encodeURIComponent(codigo);
+            window.location.replace('/scan/' + encodeURIComponent(codigo));
           },
           function() {}
         ).then(function() { scannerModalActivo = true; });
@@ -308,7 +308,7 @@
     var codigo = document.getElementById('qrManualInput').value.trim();
     if (codigo) {
       cerrarModalQR();
-      window.location.href = '/scan/' + encodeURIComponent(codigo);
+      window.location.replace('/scan/' + encodeURIComponent(codigo));
     }
   }
 </script>
