@@ -54,29 +54,27 @@
 
   <!-- Sección iOS -->
   <div id="seccionIOS" style="display:none;">
-    <div style="background:#f0f8fc; border-radius:12px; padding:20px; text-align:center; margin-bottom:12px;">
-      <i class="bi bi-camera" style="font-size:48px; color:#0b4f6c;"></i>
-      <div style="font-weight:700; color:#0b4f6c; font-size:16px; margin:12px 0 8px;">
-        Escanea con tu cámara
-      </div>
-      <div style="font-size:13px; color:#666; line-height:1.6;">
-        En iPhone, abre la <strong>cámara nativa</strong> y apunta al código QR del artículo. 
-        Se abrirá automáticamente el formulario de registro.
-      </div>
-      <div style="margin-top:16px; padding:12px; background:#fff; border-radius:8px; border:1px solid #ddd;">
-        <i class="bi bi-info-circle" style="color:#0b4f6c;"></i>
-        <span style="font-size:12px; color:#888;">
-          También puedes ingresar el número de parte manualmente:
-        </span>
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <input type="text" id="iosManualCodigo" class="campo-input" 
-                 placeholder="Ej: 5250" style="margin-bottom:0; flex:1;">
-          <button onclick="buscarManualIOS()" 
-                  style="padding:10px 16px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-            Buscar
-          </button>
-        </div>
-      </div>
+    <div style="margin-bottom:16px;">
+      <label style="width:100%; padding:16px; background:#0b4f6c; color:#fff; border-radius:10px;
+                    font-size:16px; font-weight:600; cursor:pointer; display:block; text-align:center;">
+        <i class="bi bi-camera"></i> Abrir cámara y escanear QR
+        <input type="file" id="iosKioscoInput" accept="image/*" capture="environment"
+               style="display:none;" onchange="procesarIOSKiosco(this)">
+      </label>
+      <div id="iosKioscoStatus" style="text-align:center; font-size:12px; color:#888; margin-top:8px;"></div>
+      <div id="iosKioscoReader" style="display:none;"></div>
+    </div>
+    <div style="font-size:13px; color:#888; margin-bottom:8px; font-weight:600; text-align:center;">
+      — o ingresa el número de parte —
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="iosManualCodigo" class="campo-input"
+             placeholder="Ej: 5250" style="margin-bottom:0; flex:1;"
+             onkeypress="if(event.key==='Enter') buscarManualIOS()">
+      <button onclick="buscarManualIOS()"
+              style="padding:10px 16px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+        Buscar
+      </button>
     </div>
   </div>
 
@@ -202,6 +200,48 @@
       return;
     }
     window.location.href = '/scan/' + encodeURIComponent(codigo);
+  }
+
+function procesarIOSKiosco(input) {
+    if (!input.files || !input.files[0]) return;
+    document.getElementById('iosKioscoStatus').textContent = 'Procesando...';
+    const file = input.files[0];
+
+    function escanear() {
+      const readerDiv = document.getElementById('iosKioscoReader');
+      readerDiv.style.display = 'block';
+      const scanner = new Html5Qrcode("iosKioscoReader");
+      scanner.scanFile(file, true)
+        .then(decodedText => {
+          document.getElementById('iosKioscoStatus').textContent = '✅ QR detectado';
+          readerDiv.style.display = 'none';
+          input.value = '';
+          let codigo = decodedText;
+          if (decodedText.includes('/scan/')) {
+            codigo = decodedText.split('/scan/').pop();
+          }
+          window.location.replace('/scan/' + encodeURIComponent(codigo));
+        })
+        .catch(() => {
+          document.getElementById('iosKioscoStatus').textContent = 'No se pudo leer. Intenta con mejor iluminación.';
+          readerDiv.style.display = 'none';
+          input.value = '';
+        });
+    }
+
+    if (typeof Html5Qrcode === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+      script.onload = escanear;
+      document.head.appendChild(script);
+    } else {
+      escanear();
+    }
+  }
+
+  function buscarManualIOS() {
+    const codigo = document.getElementById('iosManualCodigo').value.trim();
+    if (codigo) window.location.replace('/scan/' + encodeURIComponent(codigo));
   }
 
   // ─── COMÚN ────────────────────────────────────────────────────────────────
