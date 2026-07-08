@@ -333,6 +333,12 @@ def registrar_movimiento():
         db.close()
         return jsonify({'status': 'error', 'message': 'Artículo no encontrado.'})
 
+    # Solo admin puede hacer entradas
+    rol = session.get('rol', 'kiosco')
+    if tipo == 'ENTRADA' and rol not in ['admin']:
+        db.close()
+        return jsonify({'status': 'error', 'message': 'Solo el administrador puede registrar entradas.'})
+
     if tipo == 'SALIDA' and articulo['stock_actual'] < cantidad:
         db.close()
         return jsonify({'status': 'error', 'message': 'Stock insuficiente.'})
@@ -1860,6 +1866,12 @@ def scan_registrar():
     if not articulo:
         db.close()
         return jsonify({'status': 'error', 'message': 'Artículo no encontrado.'})
+
+    # Solo admin puede hacer entradas desde escaneo directo
+    rol = session.get('rol', 'kiosco')
+    if tipo == 'ENTRADA' and rol not in ['admin']:
+        db.close()
+        return jsonify({'status': 'error', 'message': 'Solo el administrador puede registrar entradas.'})
 
     if tipo == 'SALIDA' and articulo['stock_actual'] < cantidad:
         db.close()

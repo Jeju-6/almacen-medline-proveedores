@@ -73,10 +73,13 @@
 
   <!-- Tipo de movimiento -->
   <div class="d-flex justify-content-between gap-2 mb-3">
+    {% if session.rol == 'admin' %}
     <button class="btn-tipo btn-entrada" id="btnEntrada" onclick="seleccionarTipo('ENTRADA')">
       <i class="bi bi-box-arrow-in-down"></i> ENTRADA
     </button>
-    <button class="btn-tipo btn-salida activo" id="btnSalida" onclick="seleccionarTipo('SALIDA')">
+    {% endif %}
+    <button class="btn-tipo btn-salida activo" id="btnSalida" onclick="seleccionarTipo('SALIDA')"
+            style="{% if session.rol != 'admin' %}width:100%;{% endif %}">
       <i class="bi bi-box-arrow-up"></i> SALIDA
     </button>
   </div>
