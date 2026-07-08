@@ -202,31 +202,112 @@
   <div style="background:#fff; border-radius:20px 20px 0 0; padding:24px; width:100%; max-width:480px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <span style="font-weight:700; color:#0b4f6c; font-size:16px;">
-        <i class="bi bi-qr-code-scan"></i> Buscar artículo
+        <i class="bi bi-qr-code-scan"></i> Escanear artículo
       </span>
-      <button onclick="document.getElementById('modalQR').style.display='none'"
+      <button onclick="cerrarModalQR()"
               style="background:none; border:none; font-size:22px; color:#888; cursor:pointer;">✕</button>
     </div>
-    <div style="font-size:13px; color:#666; margin-bottom:12px;">
-      Ingresa el número de parte o escanea el QR con la cámara nativa de tu dispositivo.
+
+    <!-- Opción cámara (solo móvil) -->
+    <div id="opcionCamara" style="display:none; margin-bottom:16px;">
+      <div id="readerModalQR" style="width:100%; min-height:200px; border:2px dashed #0b4f6c; border-radius:10px; overflow:hidden; background:#f8f9fa; margin-bottom:8px;"></div>
+      <button onclick="detenerCamaraModal()"
+              style="width:100%; padding:8px; background:#f0f0f0; border:none; border-radius:8px; color:#666; cursor:pointer; font-size:13px;">
+        <i class="bi bi-x"></i> Cancelar cámara
+      </button>
     </div>
+
+    <!-- Botón abrir cámara -->
+    <button id="btnAbrirCamara" onclick="abrirCamaraModal()"
+            style="width:100%; padding:14px; background:#1a7a9e; color:#fff; border:none;
+                   border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px;">
+      <i class="bi bi-camera"></i> Escanear con cámara
+    </button>
+
+    <div style="text-align:center; color:#aaa; font-size:12px; margin-bottom:12px;">— o ingresa el número de parte —</div>
+
     <div style="display:flex; gap:8px;">
       <input type="text" id="qrManualInput" placeholder="Ej: 5250"
              style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
              onkeypress="if(event.key==='Enter') buscarQRManual()">
       <button onclick="buscarQRManual()"
               style="padding:12px 20px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
-        Buscar
+        Ir
       </button>
     </div>
   </div>
 </div>
 
 <script>
+  var scannerModal = null;
+  var scannerModalActivo = false;
+
+  function cerrarModalQR() {
+    document.getElementById('modalQR').style.display = 'none';
+    detenerCamaraModal();
+    document.getElementById('qrManualInput').value = '';
+  }
+
+  function abrirCamaraModal() {
+    if (typeof Html5Qrcode === 'undefined') {
+      var script = document.createElement('script');
+      script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+      script.onload = function() { iniciarCamaraModal(); };
+      document.head.appendChild(script);
+    } else {
+      iniciarCamaraModal();
+    }
+  }
+
+  function iniciarCamaraModal() {
+    document.getElementById('opcionCamara').style.display = 'block';
+    document.getElementById('btnAbrirCamara').style.display = 'none';
+    document.getElementById('readerModalQR').innerHTML = '';
+
+    scannerModal = new Html5Qrcode("readerModalQR");
+    Html5Qrcode.getCameras().then(function(cameras) {
+      if (cameras && cameras.length > 0) {
+        var camaraId = cameras[cameras.length - 1].id;
+        for (var i = 0; i < cameras.length; i++) {
+          var label = cameras[i].label.toLowerCase();
+          if (label.includes('back') || label.includes('trasera') || label.includes('rear')) {
+            camaraId = cameras[i].id;
+            break;
+          }
+        }
+        scannerModal.start(
+          camaraId,
+          { fps: 15, qrbox: { width: 200, height: 200 } },
+          function(decodedText) {
+            detenerCamaraModal();
+            cerrarModalQR();
+            var codigo = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop() : decodedText;
+            window.location.href = '/scan/' + encodeURIComponent(codigo);
+          },
+          function() {}
+        ).then(function() { scannerModalActivo = true; });
+      }
+    }).catch(function() {
+      document.getElementById('opcionCamara').style.display = 'none';
+      document.getElementById('btnAbrirCamara').style.display = 'block';
+      alert('No se pudo acceder a la cámara. Usa la búsqueda manual.');
+    });
+  }
+
+  function detenerCamaraModal() {
+    if (scannerModal && scannerModalActivo) {
+      scannerModal.stop().catch(function() {});
+      scannerModalActivo = false;
+    }
+    document.getElementById('opcionCamara').style.display = 'none';
+    document.getElementById('btnAbrirCamara').style.display = 'block';
+    document.getElementById('readerModalQR').innerHTML = '';
+  }
+
   function buscarQRManual() {
     var codigo = document.getElementById('qrManualInput').value.trim();
     if (codigo) {
-      document.getElementById('modalQR').style.display = 'none';
+      cerrarModalQR();
       window.location.href = '/scan/' + encodeURIComponent(codigo);
     }
   }
