@@ -247,9 +247,15 @@ function procesarIOSKiosco(input) {
   // ─── COMÚN ────────────────────────────────────────────────────────────────
   function onScanSuccess(decodedText) {
     if (codigoDetectado === decodedText) return;
-    codigoDetectado = decodedText;
+    // Extraer solo el código si viene como URL completa
+    let codigo = decodedText;
+    if (decodedText.includes('/scan/')) {
+      codigo = decodedText.split('/scan/').pop();
+    }
+    codigoDetectado = codigo;
     if (navigator.vibrate) navigator.vibrate(150);
-    buscarArticulo(decodedText);
+    // Redirigir directo al formulario
+    window.location.replace('/scan/' + encodeURIComponent(codigo));
   }
 
   function buscarArticulo(codigo) {
