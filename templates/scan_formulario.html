@@ -114,16 +114,8 @@
 
   <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
     <a href="/dashboard" style="font-size:13px; color:#fff; text-decoration:none; background:#0b4f6c;
-                                padding:8px 16px; border-radius:8px;">
-      <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-    <a href="/kiosco" style="font-size:13px; color:#fff; text-decoration:none; background:#1a7a9e;
-                             padding:8px 16px; border-radius:8px;">
-      <i class="bi bi-qr-code-scan"></i> Kiosco
-    </a>
-    <a href="/login" style="font-size:13px; color:#aaa; text-decoration:none; background:#f0f0f0;
-                            padding:8px 16px; border-radius:8px;">
-      <i class="bi bi-box-arrow-in-right"></i> Login
+                                padding:10px 20px; border-radius:8px; font-weight:600;">
+      <i class="bi bi-arrow-left"></i> Regresar
     </a>
   </div>
 </div>
@@ -186,21 +178,26 @@
     .then(data => {
       mostrarStatus(data.message, data.status);
       if (data.status === 'success') {
-        btn.textContent = '✅ Registrado';
+        btn.textContent = '✅ Registrado correctamente';
         setTimeout(() => {
-          document.getElementById('cantidad').value = '1';
-          document.getElementById('nombreRetira').value = '';
-          document.getElementById('areaRetira').value = '';
-          document.getElementById('motivoRetira').value = '';
-          document.getElementById('observaciones').value = '';
-          btn.disabled = false;
-          btn.innerHTML = '<i class="bi bi-check-circle"></i> Registrar operación';
-          document.getElementById('statusBox').style.display = 'none';
-          location.reload();
-        }, 2000);
-      } else {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-circle"></i> Registrar operación';
+          // Mostrar opciones después de registrar
+          document.querySelector('.btn-registrar').style.display = 'none';
+          const opciones = document.createElement('div');
+          opciones.style.cssText = 'display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;';
+          opciones.innerHTML = `
+            <button onclick="location.reload()" 
+              style="flex:1; padding:12px; background:#1a7a9e; color:#fff; border:none; 
+                     border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;">
+              <i class="bi bi-qr-code-scan"></i> Escanear otro
+            </button>
+            <button onclick="window.location='/dashboard'"
+              style="flex:1; padding:12px; background:#0b4f6c; color:#fff; border:none;
+                     border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;">
+              <i class="bi bi-speedometer2"></i> Ir al dashboard
+            </button>
+          `;
+          document.getElementById('statusBox').after(opciones);
+        }, 1500);
       }
     });
   }
