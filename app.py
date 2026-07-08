@@ -1576,12 +1576,34 @@ def detalle_articulo(id_articulo):
         (id_articulo,)
     ).fetchone()[0] or 0
 
+    # Generar código de barras
+    import barcode
+    from barcode.writer import ImageWriter
+    import io, base64
+    try:
+        code128 = barcode.get('code128', str(articulo['num_parte']), writer=ImageWriter())
+        buffer = io.BytesIO()
+        code128.write(buffer, options={
+            'module_height': 10,
+            'module_width': 0.3,
+            'quiet_zone': 2,
+            'font_size': 8,
+            'text_distance': 2,
+            'background': 'white',
+            'foreground': 'black',
+            'write_text': True
+        })
+        barcode_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+    except Exception:
+        barcode_b64 = None
+
     db.close()
     return render_template('detalle_articulo.html',
         articulo=articulo,
         movimientos=movimientos,
         total_entradas=total_entradas,
-        total_salidas=total_salidas
+        total_salidas=total_salidas,
+        barcode_b64=barcode_b64
     )
 
 # ─── PERFIL ───────────────────────────────────────────────────────────────────
