@@ -112,9 +112,8 @@
 
   <div class="status-box" id="statusBox"></div>
 
-  <div style="display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap;">
-    <a href="/dashboard" style="font-size:13px; color:#fff; text-decoration:none; background:#0b4f6c;
-                                padding:10px 20px; border-radius:8px; font-weight:600;">
+  <div style="text-align:center; margin-top:16px;">
+    <a href="/dashboard" style="font-size:12px; color:#aaa; text-decoration:none;">
       <i class="bi bi-arrow-left"></i> Regresar
     </a>
   </div>
@@ -185,7 +184,7 @@
           const opciones = document.createElement('div');
           opciones.style.cssText = 'display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;';
           opciones.innerHTML = `
-            <button onclick="location.reload()" 
+            <button onclick="window.location='/kiosco'" 
               style="flex:1; padding:12px; background:#1a7a9e; color:#fff; border:none; 
                      border-radius:10px; font-size:15px; font-weight:600; cursor:pointer;">
               <i class="bi bi-qr-code-scan"></i> Escanear otro
