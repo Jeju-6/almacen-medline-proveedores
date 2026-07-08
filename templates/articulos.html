@@ -102,6 +102,8 @@
             </td>
             {% endif %}
             <td>
+              <td onclick="window.location='{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}'"
+                style="cursor:pointer;">
               {% if art.imagen %}
                 <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
                      style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
@@ -112,7 +114,10 @@
                 </div>
               {% endif %}
             </td>
-            <td><code>{{ art.num_parte }}</code></td>
+            <td onclick="window.location='{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}'"
+                style="cursor:pointer;">
+              <code>{{ art.num_parte }}</code>
+            </td>
             <td>
               <a href="{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}"
                  style="text-decoration:none; color:#0b4f6c; font-weight:600;">
