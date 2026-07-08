@@ -1591,7 +1591,7 @@ def detalle_articulo(id_articulo):
             'text_distance': 2,
             'background': 'white',
             'foreground': 'black',
-            'write_text': True
+            'write_text': False
         })
         barcode_b64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
     except Exception:
