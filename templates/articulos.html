@@ -185,7 +185,9 @@
 <!-- VISTA MÓVIL: Tarjetas -->
 <div class="vista-cards" id="listaCards">
   {% for art in articulos %}
-  <div class="card-articulo card p-3 articulo-item">
+  <div class="card-articulo card p-3 articulo-item" 
+       onclick="window.location='{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}'"
+       style="cursor:pointer;">
     <div class="d-flex gap-3 align-items-start">
       {% if art.imagen %}
         <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
@@ -243,15 +245,16 @@
       {% if session.rol == 'admin' %}
       <div class="d-flex gap-2">
         <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
-           class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-pencil"></i>
-        </a>
-        <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
-           class="btn btn-sm btn-outline-danger"
-           onclick="return confirm('¿Desactivar este artículo?')">
-          <i class="bi bi-x-circle"></i>
-        </a>
-      </div>
+         class="btn btn-sm btn-outline-primary" style="flex:1; font-size:12px;"
+         onclick="event.stopPropagation()">
+        <i class="bi bi-pencil"></i> Editar
+      </a>
+      {% if u.id_usuario != session.usuario_id %}
+      <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
+         class="btn btn-sm btn-outline-danger" style="font-size:12px;"
+         onclick="event.stopPropagation(); return confirm('¿Desactivar este artículo?')">
+        <i class="bi bi-x-circle"></i>
+      </a>
       {% endif %}
     </div>
   </div>
