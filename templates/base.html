@@ -182,7 +182,14 @@
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
 
   <script>
-    try { if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark-mode'); } catch(e) {}
+    try {
+      const guardado = localStorage.getItem('darkMode');
+      const sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // Si no hay preferencia guardada, usar la del sistema
+      if (guardado === 'true' || (guardado === null && sistemaOscuro)) {
+        document.documentElement.classList.add('dark-mode');
+      }
+    } catch(e) {}
   </script>
 
   {% block extra_css %}{% endblock %}
@@ -518,9 +525,21 @@
   }
   // Modo oscuro
   try {
-    if (localStorage.getItem('darkMode') === 'true') {
+    const guardado = localStorage.getItem('darkMode');
+    const sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (guardado === 'true' || (guardado === null && sistemaOscuro)) {
       document.body.classList.add('dark-mode');
     }
+    // Escuchar cambios del sistema automáticamente
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (localStorage.getItem('darkMode') === null) {
+        if (e.matches) {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+      }
+    });
   } catch(e) {}
 </script>
 {% block extra_js %}{% endblock %}

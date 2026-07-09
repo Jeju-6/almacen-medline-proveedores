@@ -167,7 +167,9 @@
     const label = document.getElementById('labelModo');
 
     if (toggle) {
-      const isDark = localStorage.getItem('darkMode') === 'true';
+      const guardado = localStorage.getItem('darkMode');
+      const sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = guardado === 'true' || (guardado === null && sistemaOscuro);
       toggle.checked = isDark;
       if (label) label.textContent = isDark ? 'Activado' : 'Desactivado';
 
