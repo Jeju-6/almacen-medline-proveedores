@@ -457,11 +457,6 @@ def registrar_movimiento():
 @solo_admin
 @cache.cached(timeout=120, key_prefix='proveedores')
 def proveedores():
-
-@app.route('/proveedores')
-@login_requerido
-@solo_admin
-def proveedores():
     db = get_db()
     lista = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall()
     db.close()
