@@ -262,10 +262,6 @@ def dashboard():
 @login_requerido
 @cache.cached(timeout=60, key_prefix=lambda: f'articulos_{session.get("usuario_id")}')
 def articulos():
-
-@app.route('/articulos')
-@login_requerido
-def articulos():
     db = get_db()
     rol = session.get('rol')
     id_proveedor = session.get('id_proveedor')
