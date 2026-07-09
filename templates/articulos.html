@@ -243,8 +243,7 @@
         </div>
       </div>
       {% if session.rol == 'admin' %}
-      <div class="d-flex gap-2">
-        <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
+      <a href="{{ url_for('editar_articulo', id_articulo=art.id_articulo) }}"
          class="btn btn-sm btn-outline-primary" style="flex:1; font-size:12px;"
          onclick="event.stopPropagation()">
         <i class="bi bi-pencil"></i> Editar
