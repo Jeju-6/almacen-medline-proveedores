@@ -429,6 +429,13 @@ def registrar_movimiento():
         except Exception as e:
             print(f"Error enviando correo: {e}")
 
+    # Resolver alertas si el stock subió sobre el mínimo
+    if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
+        db.execute('''
+            UPDATE alertas SET resuelta=1 
+            WHERE id_articulo=%s AND resuelta=0
+        ''', (articulo['id_articulo'],))
+
     db.commit()
     db.close()
     return jsonify({
@@ -519,7 +526,7 @@ def editar_articulo(id_articulo):
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], imagen_filename))
         db.execute('''
             UPDATE articulos SET num_parte=?, nombre=?, descripcion=?, unidad_medida=?,
-                stock_minimo=?, link_compra=?, imagen=?, id_proveedor=?, ubicacion=?
+                stock_minimo=?, link_compra=?, imagen=?, id_proveedor=?, ubicacion=?, stock_actual=?
             WHERE id_articulo=?
         ''', (
             request.form['num_parte'],
@@ -531,6 +538,7 @@ def editar_articulo(id_articulo):
             imagen_filename,
             request.form['id_proveedor'],
             request.form.get('ubicacion') or None,
+            request.form.get('stock_actual', 0),
             id_articulo
         ))
         db.commit()

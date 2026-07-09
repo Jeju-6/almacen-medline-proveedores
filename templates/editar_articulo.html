@@ -54,6 +54,13 @@
         </div>
 
         <div class="col-md-4">
+          <label class="form-label fw-semibold">Stock actual</label>
+          <input type="number" name="stock_actual" class="form-control" 
+                 value="{{ articulo.stock_actual }}" min="0">
+          <div class="form-text">Cantidad actual en almacén.</div>
+        </div>
+
+        <div class="col-md-4">
           <label class="form-label fw-semibold">Stock mínimo <span class="text-danger">*</span></label>
           <input type="number" name="stock_minimo" class="form-control" value="{{ articulo.stock_minimo }}" min="1" required>
         </div>
