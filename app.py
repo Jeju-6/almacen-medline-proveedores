@@ -1,3 +1,4 @@
+from flask_caching import Cache
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mail import Mail, Message
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -90,6 +91,10 @@ def get_db():
 
     return DBWrapper(conn)
 app = Flask(__name__)
+# Configuración de caché
+app.config['CACHE_TYPE'] = 'SimpleCache'
+app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutos
+cache = Cache(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 
 # ─── CONFIGURACIÓN DE CORREO ──────────────────────────────────────────────────
@@ -255,6 +260,11 @@ def dashboard():
 
 @app.route('/articulos')
 @login_requerido
+@cache.cached(timeout=60, key_prefix=lambda: f'articulos_{session.get("usuario_id")}')
+def articulos():
+
+@app.route('/articulos')
+@login_requerido
 def articulos():
     db = get_db()
     rol = session.get('rol')
@@ -282,6 +292,7 @@ def nuevo_articulo():
     db = get_db()
     proveedores = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall()
     if request.method == 'POST':
+        cache.clear()
         imagen_filename = None
         if 'imagen' in request.files:
             file = request.files['imagen']
@@ -448,6 +459,12 @@ def registrar_movimiento():
 @app.route('/proveedores')
 @login_requerido
 @solo_admin
+@cache.cached(timeout=120, key_prefix='proveedores')
+def proveedores():
+
+@app.route('/proveedores')
+@login_requerido
+@solo_admin
 def proveedores():
     db = get_db()
     lista = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall()
@@ -516,6 +533,7 @@ def editar_articulo(id_articulo):
     articulo = db.execute('SELECT * FROM articulos WHERE id_articulo=?', (id_articulo,)).fetchone()
     proveedores = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall()
     if request.method == 'POST':
+        cache.clear()
         imagen_filename = articulo['imagen']
         if 'imagen' in request.files:
             file = request.files['imagen']
@@ -551,6 +569,7 @@ def editar_articulo(id_articulo):
 @solo_admin
 def desactivar_articulo(id_articulo):
     if request.method == 'POST':
+        cache.clear()
         password = request.form.get('password')
         db = get_db()
         usuario = db.execute(
