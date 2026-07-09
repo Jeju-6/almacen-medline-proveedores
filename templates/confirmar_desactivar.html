@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Confirmar desactivación - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-exclamation-triangle-fill" style="color:#dc3545;"></i> Confirmar desactivación
+  </h4>
+  <a href="{{ url_for('articulos') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Cancelar
+  </a>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card p-4" style="border-left:4px solid #dc3545;">
+      <div style="text-align:center; margin-bottom:20px;">
+        {% if articulo.imagen %}
+          <img src="{{ url_for('static', filename='uploads/' + articulo.imagen) }}"
+               style="width:80px; height:80px; object-fit:cover; border-radius:10px; margin-bottom:12px;">
+        {% endif %}
+        <div style="font-size:18px; font-weight:700; color:#0b4f6c;">{{ articulo.nombre }}</div>
+        <div style="font-size:13px; color:#888;"><code>{{ articulo.num_parte }}</code></div>
+      </div>
+
+      <div style="background:#fef2f2; border-radius:8px; padding:12px; margin-bottom:20px; font-size:13px; color:#842029;">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        Esta acción desactivará el artículo y ya no aparecerá en el sistema. 
+        Ingresa tu contraseña para confirmar.
+      </div>
+
+      <form method="POST">
+        <label class="form-label fw-semibold">Tu contraseña de administrador:</label>
+        <input type="password" name="password" class="form-control mb-3"
+               placeholder="Ingresa tu contraseña" required autofocus>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-danger" style="flex:1; padding:10px;">
+            <i class="bi bi-trash"></i> Confirmar desactivación
+          </button>
+          <a href="{{ url_for('articulos') }}" class="btn btn-outline-secondary" style="flex:1; padding:10px; text-align:center;">
+            Cancelar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

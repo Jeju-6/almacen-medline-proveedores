@@ -428,14 +428,12 @@ def registrar_movimiento():
                 mail.send(msg)
         except Exception as e:
             print(f"Error enviando correo: {e}")
-
-    # Resolver alertas si el stock subió sobre el mínimo
+# Resolver alertas si stock subió sobre el mínimo
     if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
-        db.execute('''
-            UPDATE alertas SET resuelta=1 
-            WHERE id_articulo=%s AND resuelta=0
-        ''', (articulo['id_articulo'],))
-
+        db.execute(
+            'UPDATE alertas SET resuelta=1 WHERE id_articulo=%s AND resuelta=0',
+            (articulo['id_articulo'],)
+        )
     db.commit()
     db.close()
     return jsonify({
@@ -548,16 +546,32 @@ def editar_articulo(id_articulo):
     db.close()
     return render_template('editar_articulo.html', articulo=articulo, proveedores=proveedores)
 
-@app.route('/articulos/desactivar/<int:id_articulo>')
+@app.route('/articulos/desactivar/<int:id_articulo>', methods=['GET', 'POST'])
 @login_requerido
 @solo_admin
 def desactivar_articulo(id_articulo):
+    if request.method == 'POST':
+        password = request.form.get('password')
+        db = get_db()
+        usuario = db.execute(
+            'SELECT * FROM usuarios WHERE id_usuario=%s',
+            (session['usuario_id'],)
+        ).fetchone()
+        if not check_password_hash(usuario['password_hash'], password):
+            flash('Contraseña incorrecta.', 'error')
+            db.close()
+            return redirect(url_for('articulos'))
+        db.execute('UPDATE articulos SET activo=0 WHERE id_articulo=%s', (id_articulo,))
+        db.commit()
+        db.close()
+        flash('Artículo desactivado correctamente.', 'success')
+        return redirect(url_for('articulos'))
     db = get_db()
-    db.execute('UPDATE articulos SET activo=0 WHERE id_articulo=?', (id_articulo,))
-    db.commit()
+    articulo = db.execute(
+        'SELECT * FROM articulos WHERE id_articulo=%s', (id_articulo,)
+    ).fetchone()
     db.close()
-    flash('Artículo desactivado.', 'success')
-    return redirect(url_for('articulos'))
+    return render_template('confirmar_desactivar.html', articulo=articulo)
 
 # ─── ALERTAS ──────────────────────────────────────────────────────────────────
 
