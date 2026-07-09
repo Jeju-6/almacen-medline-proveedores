@@ -355,16 +355,17 @@
 </style>
 
 <script>
-  // Splash screen solo en PWA instalada
+ // Splash screen solo en PWA instalada y solo la primera vez por sesión
   const esPWA = window.matchMedia('(display-mode: standalone)').matches || 
                 window.navigator.standalone === true;
+  const yaVioSplash = sessionStorage.getItem('splashVisto');
   
-  if (esPWA) {
+  if (esPWA && !yaVioSplash) {
+    sessionStorage.setItem('splashVisto', '1');
     const splash = document.getElementById('splashScreen');
     const bar = document.getElementById('splashBar');
     const text = document.getElementById('splashText');
     
-    // Animar barra de carga
     const pasos = [
       { w: 30, t: 'Conectando...', d: 300 },
       { w: 60, t: 'Cargando datos...', d: 400 },
@@ -375,11 +376,12 @@
     let i = 0;
     function siguiente() {
       if (i < pasos.length) {
-        bar.style.width = pasos[i].w + '%';
-        text.textContent = pasos[i].t;
-        setTimeout(() => { i++; siguiente(); }, pasos[i].d);
+        const paso = pasos[i];
+        bar.style.width = paso.w + '%';
+        text.textContent = paso.t;
+        i++;
+        setTimeout(siguiente, paso.d);
       } else {
-        // Ocultar splash
         setTimeout(() => {
           splash.style.opacity = '0';
           setTimeout(() => { splash.style.display = 'none'; }, 500);
