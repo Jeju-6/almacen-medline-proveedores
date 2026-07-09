@@ -105,6 +105,54 @@
     body.dark-mode a:hover { color: #90caf9 !important; }
     body.dark-mode .nav-link { color: #b0b0b0 !important; }
     body.dark-mode .badge.bg-secondary { background-color: #3d3d3d !important; }
+
+    /* Forzar fondo oscuro en elementos con estilos inline */
+    body.dark-mode [style*="background:#fff"],
+    body.dark-mode [style*="background: #fff"],
+    body.dark-mode [style*="background-color:#fff"],
+    body.dark-mode [style*="background:#f"],
+    body.dark-mode [style*="background: #f"],
+    body.dark-mode [style*="background:#e"],
+    body.dark-mode [style*="background: #e"],
+    body.dark-mode [style*="background:white"],
+    body.dark-mode [style*="background: white"] {
+      background-color: #1e1e1e !important;
+      background: #1e1e1e !important;
+    }
+    body.dark-mode [style*="color:#0b4f6c"],
+    body.dark-mode [style*="color: #0b4f6c"] {
+      color: #64b5f6 !important;
+    }
+    body.dark-mode [style*="color:#888"],
+    body.dark-mode [style*="color: #888"],
+    body.dark-mode [style*="color:#aaa"],
+    body.dark-mode [style*="color:#555"],
+    body.dark-mode [style*="color:#666"] {
+      color: #999 !important;
+    }
+    body.dark-mode [style*="color:#333"],
+    body.dark-mode [style*="color: #333"] {
+      color: #e8e8e8 !important;
+    }
+    body.dark-mode [style*="border-bottom:1px solid #eee"],
+    body.dark-mode [style*="border-bottom: 1px solid #eee"],
+    body.dark-mode [style*="border:1px solid #eee"],
+    body.dark-mode [style*="border: 1px solid #eee"] {
+      border-color: #2d2d2d !important;
+    }
+    body.dark-mode [style*="background:#f0f8fc"],
+    body.dark-mode [style*="background: #f0f8fc"],
+    body.dark-mode [style*="background:#f8f9fa"],
+    body.dark-mode [style*="background: #f8f9fa"],
+    body.dark-mode [style*="background:#fef2f2"],
+    body.dark-mode [style*="background:#fff8f0"],
+    body.dark-mode [style*="background:#fff8e1"],
+    body.dark-mode [style*="background:#e8f4f8"],
+    body.dark-mode [style*="background:#e8f5e9"] {
+      background-color: #252525 !important;
+      background: #252525 !important;
+    }
+
   </style>
 
   <link rel="manifest" href="/static/manifest.json">
