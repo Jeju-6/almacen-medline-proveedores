@@ -1,11 +1,11 @@
 {
-  "name": "Almacén Medline",
+  "name": "Almacén Proveedores Medline",
   "short_name": "Almacén",
   "description": "Sistema de control de inventario para proveedores Medline",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#0b4f6c",
-  "theme_color": "#0b4f6c",
+  "background_color": "#0052BA",
+  "theme_color": "#0052BA",
   "orientation": "portrait",
   "icons": [
     {
@@ -16,6 +16,11 @@
     {
       "src": "/static/icons/icon-512.png",
       "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icons/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
     }
   ]
