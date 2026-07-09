@@ -298,9 +298,21 @@
     if (!esIOS && html5QrCode && camaraActiva) {
       html5QrCode.stop().then(() => {
         camaraActiva = false;
-        document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'block';
-        document.getElementById('btnReset').style.display = 'none';
-      }).catch(() => {});
+        html5QrCode.clear();
+        document.getElementById('reader').innerHTML = '';
+        // Esperar un momento antes de reiniciar
+        setTimeout(() => {
+          html5QrCode = null;
+          iniciarCamaraAndroid();
+        }, 500);
+      }).catch(() => {
+        camaraActiva = false;
+        document.getElementById('reader').innerHTML = '';
+        setTimeout(() => {
+          html5QrCode = null;
+          iniciarCamaraAndroid();
+        }, 500);
+      });
     }
   }
 
