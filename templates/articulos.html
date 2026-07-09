@@ -101,8 +101,7 @@
                      onclick="actualizarSeleccion()">
             </td>
             {% endif %}
-            <td>
-              <td onclick="window.location='{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}'"
+            <td onclick="window.location='{{ url_for('detalle_articulo', id_articulo=art.id_articulo) }}'"
                 style="cursor:pointer;">
               {% if art.imagen %}
                 <img src="{{ url_for('static', filename='uploads/' + art.imagen) }}"
