@@ -248,7 +248,6 @@
          onclick="event.stopPropagation()">
         <i class="bi bi-pencil"></i> Editar
       </a>
-      {% if u.id_usuario != session.usuario_id %}
       <a href="{{ url_for('desactivar_articulo', id_articulo=art.id_articulo) }}"
          class="btn btn-sm btn-outline-danger" style="font-size:12px;"
          onclick="event.stopPropagation(); return confirm('¿Desactivar este artículo?')">
