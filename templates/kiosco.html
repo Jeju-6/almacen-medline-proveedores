@@ -248,17 +248,33 @@
   }
 
   // ─── COMÚN ────────────────────────────────────────────────────────────────
+  let ultimoScan = 0;
+  
   function onScanSuccess(decodedText) {
+    const ahora = Date.now();
+    // Ignorar si se leyó el mismo código en menos de 3 segundos
+    if (ahora - ultimoScan < 3000) return;
     if (codigoDetectado === decodedText) return;
-    // Extraer solo el código si viene como URL completa
+    
+    ultimoScan = ahora;
     let codigo = decodedText;
     if (decodedText.includes('/scan/')) {
       codigo = decodedText.split('/scan/').pop();
     }
     codigoDetectado = codigo;
     if (navigator.vibrate) navigator.vibrate(150);
-    // Redirigir directo al formulario
-    window.location.replace('/scan/' + encodeURIComponent(codigo));
+    
+    // Detener cámara antes de redirigir
+    if (html5QrCode && camaraActiva) {
+      html5QrCode.stop().then(() => {
+        camaraActiva = false;
+        window.location.replace('/scan/' + encodeURIComponent(codigo));
+      }).catch(() => {
+        window.location.replace('/scan/' + encodeURIComponent(codigo));
+      });
+    } else {
+      window.location.replace('/scan/' + encodeURIComponent(codigo));
+    }
   }
 
   function buscarArticulo(codigo) {
