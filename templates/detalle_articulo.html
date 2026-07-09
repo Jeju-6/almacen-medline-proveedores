@@ -217,11 +217,11 @@
   // Generar QR en la página
   new QRCode(document.getElementById('qrcode'), {
     text: '{{ articulo.codigo_qr }}',
-    width: 160,
-    height: 160,
-    colorDark: '#0b4f6c',
+    width: 200,
+    height: 200,
+    colorDark: '#000000',
     colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
+    correctLevel: QRCode.CorrectLevel.M
   });
 
   function imprimirEtiqueta() {
@@ -229,9 +229,11 @@
     qrDiv.innerHTML = '';
     new QRCode(qrDiv, {
       text: '{{ articulo.codigo_qr }}',
-      width: 150,
-      height: 150,
-      correctLevel: QRCode.CorrectLevel.H
+      width: 250,
+      height: 250,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
     });
     setTimeout(() => {
       const barcodeImg = '{% if barcode_b64 %}<img src="data:image/png;base64,{{ barcode_b64 }}" style="width:180px; margin:4px auto; display:block;">{% endif %}';
