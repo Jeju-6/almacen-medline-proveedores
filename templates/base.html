@@ -316,6 +316,83 @@
 
 <body>
 
+<!-- Splash Screen -->
+<div id="splashScreen" style="
+  position:fixed; inset:0; z-index:9999;
+  background:#0052BA;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  transition: opacity 0.5s ease;">
+  
+  <img src="/static/icons/icon-512.png" 
+       style="width:140px; height:140px; border-radius:24px; 
+              box-shadow:0 8px 32px rgba(0,0,0,0.3);
+              animation: pulsar 1.5s infinite ease-in-out;">
+  
+  <div style="color:#fff; font-size:22px; font-weight:700; margin-top:20px; letter-spacing:1px;">
+    Almacén Medline
+  </div>
+  <div style="color:#cce7f0; font-size:13px; margin-top:6px;">
+    Sistema de Proveedores
+  </div>
+
+  <!-- Barra de carga -->
+  <div style="width:200px; height:4px; background:rgba(255,255,255,0.2); 
+              border-radius:2px; margin-top:40px; overflow:hidden;">
+    <div id="splashBar" style="height:100%; width:0%; background:#fff; 
+                                border-radius:2px; transition:width 0.3s ease;"></div>
+  </div>
+  <div style="color:#cce7f0; font-size:12px; margin-top:10px;" id="splashText">
+    Iniciando...
+  </div>
+</div>
+
+<style>
+  @keyframes pulsar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+</style>
+
+<script>
+  // Splash screen solo en PWA instalada
+  const esPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                window.navigator.standalone === true;
+  
+  if (esPWA) {
+    const splash = document.getElementById('splashScreen');
+    const bar = document.getElementById('splashBar');
+    const text = document.getElementById('splashText');
+    
+    // Animar barra de carga
+    const pasos = [
+      { w: 30, t: 'Conectando...', d: 300 },
+      { w: 60, t: 'Cargando datos...', d: 400 },
+      { w: 85, t: 'Casi listo...', d: 300 },
+      { w: 100, t: '¡Listo!', d: 200 }
+    ];
+    
+    let i = 0;
+    function siguiente() {
+      if (i < pasos.length) {
+        bar.style.width = pasos[i].w + '%';
+        text.textContent = pasos[i].t;
+        setTimeout(() => { i++; siguiente(); }, pasos[i].d);
+      } else {
+        // Ocultar splash
+        setTimeout(() => {
+          splash.style.opacity = '0';
+          setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }, 200);
+      }
+    }
+    
+    window.addEventListener('load', () => setTimeout(siguiente, 300));
+  } else {
+    document.getElementById('splashScreen').style.display = 'none';
+  }
+</script>
+
 <div class="mobile-topbar">
   <button class="hamburger" onclick="toggleSidebar()">
     <i class="bi bi-list" id="hamburger-icon"></i>
