@@ -163,4 +163,74 @@
           {% endfor %}
         </tbody>
       </table>
+
+<!-- Gráfica de consumo últimos 7 días -->
+<div class="card mt-4">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;">
+      <i class="bi bi-bar-chart-line"></i> Consumo últimos 7 días
+    </span>
+  </div>
+  <div class="card-body">
+    <canvas id="graficaDashboard" height="100"></canvas>
+  </div>
+</div>
+
       {% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Datos de movimientos recientes para la gráfica
+  const movimientos = {{ movimientos_json | tojson }};
+  
+  // Agrupar por fecha últimos 7 días
+  const hoy = new Date();
+  const dias = [];
+  const entradas = [];
+  const salidas = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date(hoy);
+    fecha.setDate(hoy.getDate() - i);
+    const fechaStr = fecha.toLocaleDateString('es-MX', { month: 'short', day: 'numeric' });
+    const fechaISO = fecha.toISOString().split('T')[0];
+    
+    dias.push(fechaStr);
+    
+    const entradasDia = movimientos.filter(m => 
+      m.tipo === 'ENTRADA' && m.fecha_hora && m.fecha_hora.startsWith(fechaISO)
+    ).reduce((sum, m) => sum + m.cantidad, 0);
+    
+    const salidasDia = movimientos.filter(m => 
+      m.tipo === 'SALIDA' && m.fecha_hora && m.fecha_hora.startsWith(fechaISO)
+    ).reduce((sum, m) => sum + m.cantidad, 0);
+    
+    entradas.push(entradasDia);
+    salidas.push(salidasDia);
+  }
+
+  new Chart(document.getElementById('graficaDashboard'), {
+    type: 'bar',
+    data: {
+      labels: dias,
+      datasets: [{
+        label: 'Entradas',
+        data: entradas,
+        backgroundColor: 'rgba(25,135,84,0.7)',
+        borderRadius: 6
+      }, {
+        label: 'Salidas',
+        data: salidas,
+        backgroundColor: 'rgba(220,53,69,0.7)',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+  });
+</script>
+{% endblock %}

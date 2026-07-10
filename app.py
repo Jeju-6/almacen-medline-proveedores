@@ -248,12 +248,21 @@ def dashboard():
         ''', (id_proveedor,)).fetchall()
 
     db.close()
+    # Convertir movimientos a lista serializable para JSON
+    movimientos_json = []
+    for m in movimientos_recientes:
+        movimientos_json.append({
+            'tipo': m['tipo'],
+            'cantidad': m['cantidad'],
+            'fecha_hora': str(m['fecha_hora']) if m['fecha_hora'] else ''
+        })
     return render_template('dashboard.html',
         total_articulos=total_articulos,
         total_proveedores=total_proveedores,
         alertas=alertas,
         criticos=criticos,
-        movimientos_recientes=movimientos_recientes
+        movimientos_recientes=movimientos_recientes,
+        movimientos_json=movimientos_json
     )
 
 # ─── ARTÍCULOS ────────────────────────────────────────────────────────────────
