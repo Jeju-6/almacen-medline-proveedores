@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Listas - Almacén Medline{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+    <i class="bi bi-list-check"></i> Gestionar listas
+  </h4>
+  <a href="{{ url_for('configuracion') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Regresar
+  </a>
+</div>
+
+<div class="row g-4">
+  {% for tipo, items, label, icono in [
+    ('area', areas, 'Áreas', 'bi-building'),
+    ('puesto', puestos, 'Puestos', 'bi-person-badge'),
+    ('motivo', motivos, 'Motivos', 'bi-card-text')
+  ] %}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+        <span style="font-weight:600; color:#0b4f6c;">
+          <i class="bi {{ icono }}"></i> {{ label }}
+        </span>
+      </div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for item in items %}
+          <li class="list-group-item d-flex justify-content-between align-items-center" style="font-size:13px;">
+            {{ item.nombre }}
+            <form method="POST" style="margin:0;">
+              <input type="hidden" name="tipo" value="{{ tipo }}">
+              <input type="hidden" name="accion" value="desactivar">
+              <input type="hidden" name="id_item" value="{{ item['id_' + tipo] }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:11px; padding:2px 8px;"
+                      onclick="return confirm('¿Eliminar este elemento?')">
+                <i class="bi bi-x"></i>
+              </button>
+            </form>
+          </li>
+          {% else %}
+          <li class="list-group-item" style="font-size:13px; color:#aaa;">Sin elementos</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card-footer" style="background:#fff;">
+        <form method="POST" class="d-flex gap-2">
+          <input type="hidden" name="tipo" value="{{ tipo }}">
+          <input type="hidden" name="accion" value="agregar">
+          <input type="text" name="nombre" class="form-control form-control-sm"
+                 placeholder="Nuevo {{ label[:-1] if label.endswith('s') else label }}..." required>
+          <button type="submit" class="btn btn-sm" style="background:#0b4f6c; color:#fff; white-space:nowrap;">
+            <i class="bi bi-plus"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

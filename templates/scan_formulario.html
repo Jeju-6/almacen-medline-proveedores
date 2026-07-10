@@ -96,14 +96,20 @@
     <label class="campo-label">Nombre de quien retira: <span style="color:red;">*</span></label>
     <input type="text" id="nombreRetira" class="campo-input" placeholder="Nombre completo">
 
+    <label class="campo-label">Puesto:</label>
+    <select id="areaRetira" class="campo-input">
+      <option value="">Seleccionar puesto...</option>
+    </select>
+
     <label class="campo-label">Área / Departamento:</label>
-    <input type="text" id="areaRetira" class="campo-input" placeholder="Ej: Mantenimiento, Producción...">
+    <select id="motivoRetira" class="campo-input">
+      <option value="">Seleccionar área...</option>
+    </select>
 
-    <label class="campo-label">Motivo / Uso:</label>
-    <input type="text" id="motivoRetira" class="campo-input" placeholder="Ej: Reparación de equipo...">
-
-    <label class="campo-label">Observaciones adicionales:</label>
-    <input type="text" id="observaciones" class="campo-input" placeholder="Opcional">
+    <label class="campo-label">Motivo:</label>
+    <select id="observaciones" class="campo-input">
+      <option value="">Seleccionar motivo...</option>
+    </select>
   </div>
 
   <button class="btn-registrar" onclick="registrar()">
@@ -120,6 +126,17 @@
 </div>
 
 <script>
+    // Cargar listas
+  fetch('/api/listas')
+    .then(r => r.json())
+    .then(data => {
+      const puesto = document.getElementById('areaRetira');
+      const area = document.getElementById('motivoRetira');
+      const motivo = document.getElementById('observaciones');
+      data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
+      data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
+      data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
+    });
   let tipoSeleccionado = 'SALIDA';
   const codigoQR = '{{ articulo.codigo_qr }}';
   const stockActual = {{ articulo.stock_actual }};
