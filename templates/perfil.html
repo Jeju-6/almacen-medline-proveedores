@@ -157,6 +157,8 @@
       .then(data => {
         const selectArea = document.getElementById('selectAreaPerfil');
         const selectPuesto = document.getElementById('selectPuestoPerfil');
+        selectArea.innerHTML = '<option value="">Sin asignar</option>';
+        selectPuesto.innerHTML = '<option value="">Sin asignar</option>';
         data.areas.forEach(a => selectArea.innerHTML += `<option value="${a}" ${a === '{{ usuario.area }}' ? 'selected' : ''}>${a}</option>`);
         data.puestos.forEach(p => selectPuesto.innerHTML += `<option value="${p}" ${p === '{{ usuario.puesto }}' ? 'selected' : ''}>${p}</option>`);
       });

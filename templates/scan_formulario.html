@@ -127,48 +127,48 @@
 
 <script>
 // Cargar listas y datos del usuario
-  fetch('/api/listas')
-    .then(r => r.json())
-    .then(data => {
-      const puesto = document.getElementById('areaRetira');
-      const area = document.getElementById('motivoRetira');
-      const motivo = document.getElementById('observaciones');
-      
-      // Limpiar opciones existentes primero
-      puesto.innerHTML = '<option value="">Seleccionar puesto...</option>';
-      area.innerHTML = '<option value="">Seleccionar área...</option>';
-      motivo.innerHTML = '<option value="">Seleccionar motivo...</option>';
-      
-      data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
-      data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
-      data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/listas')
+      .then(r => r.json())
+      .then(data => {
+        const puesto = document.getElementById('areaRetira');
+        const area = document.getElementById('motivoRetira');
+        const motivo = document.getElementById('observaciones');
+        
+        puesto.innerHTML = '<option value="">Seleccionar puesto...</option>';
+        area.innerHTML = '<option value="">Seleccionar área...</option>';
+        motivo.innerHTML = '<option value="">Seleccionar motivo...</option>';
+        
+        data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
+        data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
+        data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
 
-      // Si hay sesión activa, cargar datos del usuario
-      fetch('/api/mi_perfil')
-        .then(r => r.json())
-        .then(user => {
-          if (user.nombre) {
-            const nombreInput = document.getElementById('nombreRetira');
-            if (nombreInput && !nombreInput.value) nombreInput.value = user.nombre;
-            nombreInput.readOnly = true;
-            nombreInput.style.background = '#f8f9fa';
-          }
-          if (user.puesto) {
-            for (let opt of puesto.options) {
-              if (opt.value === user.puesto) { opt.selected = true; break; }
+        fetch('/api/mi_perfil')
+          .then(r => r.json())
+          .then(user => {
+            if (user.nombre) {
+              const nombreInput = document.getElementById('nombreRetira');
+              if (nombreInput && !nombreInput.value) nombreInput.value = user.nombre;
+              nombreInput.readOnly = true;
+              nombreInput.style.background = '#f8f9fa';
             }
-            puesto.disabled = true;
-            puesto.style.background = '#f8f9fa';
-          }
-          if (user.area) {
-            for (let opt of area.options) {
-              if (opt.value === user.area) { opt.selected = true; break; }
+            if (user.puesto) {
+              for (let opt of puesto.options) {
+                if (opt.value === user.puesto) { opt.selected = true; break; }
+              }
+              puesto.disabled = true;
+              puesto.style.background = '#f8f9fa';
             }
-            area.disabled = true;
-            area.style.background = '#f8f9fa';
-          }
-        }).catch(() => {});
-    });
+            if (user.area) {
+              for (let opt of area.options) {
+                if (opt.value === user.area) { opt.selected = true; break; }
+              }
+              area.disabled = true;
+              area.style.background = '#f8f9fa';
+            }
+          }).catch(() => {});
+      });
+  });
   let tipoSeleccionado = 'SALIDA';
   const codigoQR = '{{ articulo.codigo_qr }}';
   const stockActual = {{ articulo.stock_actual }};
