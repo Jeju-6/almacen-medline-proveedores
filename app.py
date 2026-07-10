@@ -256,12 +256,40 @@ def dashboard():
             'cantidad': m['cantidad'],
             'fecha_hora': str(m['fecha_hora']) if m['fecha_hora'] else ''
         })
+
+    # Top articulos mas consumidos para grafica
+    if rol == 'admin':
+        top_consumo = db.execute('''
+            SELECT art.nombre, 
+                   SUM(CASE WHEN m.tipo='SALIDA' THEN m.cantidad ELSE 0 END) as total_salidas,
+                   SUM(CASE WHEN m.tipo='ENTRADA' THEN m.cantidad ELSE 0 END) as total_entradas
+            FROM movimientos m
+            JOIN articulos art ON m.id_articulo = art.id_articulo
+            GROUP BY art.id_articulo, art.nombre
+            ORDER BY total_salidas DESC LIMIT 8
+        ''').fetchall()
+    else:
+        top_consumo = db.execute('''
+            SELECT art.nombre,
+                   SUM(CASE WHEN m.tipo='SALIDA' THEN m.cantidad ELSE 0 END) as total_salidas,
+                   SUM(CASE WHEN m.tipo='ENTRADA' THEN m.cantidad ELSE 0 END) as total_entradas
+            FROM movimientos m
+            JOIN articulos art ON m.id_articulo = art.id_articulo
+            WHERE art.id_proveedor = %s
+            GROUP BY art.id_articulo, art.nombre
+            ORDER BY total_salidas DESC LIMIT 8
+        ''', (id_proveedor,)).fetchall()
+
+    top_consumo_json = [{'nombre': r['nombre'], 'salidas': r['total_salidas'], 'entradas': r['total_entradas']} for r in top_consumo]
+    
     return render_template('dashboard.html',
         total_articulos=total_articulos,
         total_proveedores=total_proveedores,
         alertas=alertas,
         criticos=criticos,
         movimientos_recientes=movimientos_recientes,
+        movimientos_json=movimientos_json
+        top_consumo_json=top_consumo_json,
         movimientos_json=movimientos_json
     )
 
