@@ -1984,6 +1984,55 @@ def actualizar_qr():
     flash(f'QR actualizados para {len(articulos)} artículos.', 'success')
     return redirect(url_for('articulos'))
 
+# ─── ÁREAS, PUESTOS Y MOTIVOS ─────────────────────────────────────────────────
+
+@app.route('/configuracion/listas', methods=['GET', 'POST'])
+@login_requerido
+@solo_admin
+def configuracion_listas():
+    db = get_db()
+    if request.method == 'POST':
+        tipo = request.form.get('tipo')
+        nombre = request.form.get('nombre', '').strip()
+        accion = request.form.get('accion')
+        id_item = request.form.get('id_item')
+
+        if accion == 'agregar' and nombre:
+            if tipo == 'area':
+                db.execute('INSERT INTO areas (nombre) VALUES (%s)', (nombre,))
+            elif tipo == 'puesto':
+                db.execute('INSERT INTO puestos (nombre) VALUES (%s)', (nombre,))
+            elif tipo == 'motivo':
+                db.execute('INSERT INTO motivos (nombre) VALUES (%s)', (nombre,))
+            flash(f'Agregado correctamente.', 'success')
+
+        elif accion == 'desactivar' and id_item:
+            if tipo == 'area':
+                db.execute('UPDATE areas SET activo=0 WHERE id_area=%s', (id_item,))
+            elif tipo == 'puesto':
+                db.execute('UPDATE puestos SET activo=0 WHERE id_puesto=%s', (id_item,))
+            elif tipo == 'motivo':
+                db.execute('UPDATE motivos SET activo=0 WHERE id_motivo=%s', (id_item,))
+            flash('Eliminado correctamente.', 'success')
+
+        db.commit()
+        db.close()
+        return redirect(url_for('configuracion_listas'))
+
+    areas = db.execute('SELECT * FROM areas WHERE activo=1 ORDER BY nombre').fetchall()
+    puestos = db.execute('SELECT * FROM puestos WHERE activo=1 ORDER BY nombre').fetchall()
+    motivos = db.execute('SELECT * FROM motivos WHERE activo=1 ORDER BY nombre').fetchall()
+    db.close()
+    return render_template('configuracion_listas.html', areas=areas, puestos=puestos, motivos=motivos)
+
+@app.route('/api/listas')
+def api_listas():
+    db = get_db()
+    areas = [r['nombre'] for r in db.execute('SELECT nombre FROM areas WHERE activo=1 ORDER BY nombre').fetchall()]
+    puestos = [r['nombre'] for r in db.execute('SELECT nombre FROM puestos WHERE activo=1 ORDER BY nombre').fetchall()]
+    motivos = [r['nombre'] for r in db.execute('SELECT nombre FROM motivos WHERE activo=1 ORDER BY nombre').fetchall()]
+    db.close()
+    return jsonify({'areas': areas, 'puestos': puestos, 'motivos': motivos})
 # ─── INICIO ───────────────────────────────────────────────────────────────────
 
 @app.route('/api/articulo/<codigo>')
