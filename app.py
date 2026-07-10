@@ -75,12 +75,14 @@ def get_db():
             self.conn = connection
             self._cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         def execute(self, query, params=None):
+            # Crear nuevo cursor para cada consulta
+            cursor = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             query = query.replace('?', '%s')
             if params:
-                self._cursor.execute(query, params)
+                cursor.execute(query, params)
             else:
-                self._cursor.execute(query)
-            return CursorWrapper(self._cursor)
+                cursor.execute(query)
+            return CursorWrapper(cursor)
         def executescript(self, script):
             self._cursor.execute(script)
         def commit(self):
