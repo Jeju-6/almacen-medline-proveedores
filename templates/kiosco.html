@@ -97,12 +97,21 @@
     </div>
     <label class="campo-label">Nombre de quien retira: <span style="color:red;">*</span></label>
     <input type="text" id="nombreRetira" class="campo-input" placeholder="Nombre completo">
+
+    <label class="campo-label">Puesto:</label>
+    <select id="areaRetira" class="campo-input">
+      <option value="">Seleccionar puesto...</option>
+    </select>
+
     <label class="campo-label">Área / Departamento:</label>
-    <input type="text" id="areaRetira" class="campo-input" placeholder="Ej: Mantenimiento, Producción...">
-    <label class="campo-label">Motivo / Uso:</label>
-    <input type="text" id="motivoRetira" class="campo-input" placeholder="Ej: Reparación de equipo...">
-    <label class="campo-label">Observaciones adicionales:</label>
-    <input type="text" id="observaciones" class="campo-input" placeholder="Opcional">
+    <select id="motivoRetira" class="campo-input">
+      <option value="">Seleccionar área...</option>
+    </select>
+
+    <label class="campo-label">Motivo:</label>
+    <select id="observaciones" class="campo-input">
+      <option value="">Seleccionar motivo...</option>
+    </select>
   </div>
 
   <button class="btn-registrar" onclick="registrar()">
@@ -132,15 +141,7 @@
   let camaraActiva = false;
   const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  // Detectar iOS y mostrar sección correcta
-  document.addEventListener('DOMContentLoaded', function() {
-    if (esIOS) {
-      document.getElementById('seccionIOS').style.display = 'block';
-    } else {
-      document.getElementById('seccionAndroid').style.display = 'block';
-    }
-    
-  });
+// Detectar iOS y mostrar sección correcta
   document.addEventListener('DOMContentLoaded', function() {
     if (esIOS) {
       document.getElementById('seccionIOS').style.display = 'block';
@@ -148,7 +149,20 @@
     } else {
       document.getElementById('seccionAndroid').style.display = 'block';
     }
+
+    // Cargar listas desde API
+    fetch('/api/listas')
+      .then(r => r.json())
+      .then(data => {
+        const puesto = document.getElementById('areaRetira');
+        const area = document.getElementById('motivoRetira');
+        const motivo = document.getElementById('observaciones');
+        if (puesto) data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
+        if (area) data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
+        if (motivo) data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
+      });
   });
+
   // ─── ANDROID ──────────────────────────────────────────────────────────────
   function iniciarCamaraAndroid() {
     document.querySelector('#seccionAndroid .btn-iniciar').style.display = 'none';
