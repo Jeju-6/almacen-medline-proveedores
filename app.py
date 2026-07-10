@@ -288,7 +288,6 @@ def dashboard():
         alertas=alertas,
         criticos=criticos,
         movimientos_recientes=movimientos_recientes,
-        movimientos_json=movimientos_json
         top_consumo_json=top_consumo_json,
         movimientos_json=movimientos_json
     )
