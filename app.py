@@ -479,6 +479,12 @@ def registrar_movimiento():
             'UPDATE alertas SET resuelta=1 WHERE id_articulo=%s AND resuelta=0',
             (articulo['id_articulo'],)
         )
+    # Resolver alertas automáticamente si el stock subió sobre el mínimo
+    if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
+        db.execute(
+            'UPDATE alertas SET resuelta=1 WHERE id_articulo=%s AND resuelta=0',
+            (articulo['id_articulo'],)
+        )
     db.commit()
     db.close()
     return jsonify({
