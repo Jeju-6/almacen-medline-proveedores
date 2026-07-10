@@ -126,13 +126,19 @@
 </div>
 
 <script>
-    // Cargar listas y datos del usuario si está logueado
+// Cargar listas y datos del usuario
   fetch('/api/listas')
     .then(r => r.json())
     .then(data => {
       const puesto = document.getElementById('areaRetira');
       const area = document.getElementById('motivoRetira');
       const motivo = document.getElementById('observaciones');
+      
+      // Limpiar opciones existentes primero
+      puesto.innerHTML = '<option value="">Seleccionar puesto...</option>';
+      area.innerHTML = '<option value="">Seleccionar área...</option>';
+      motivo.innerHTML = '<option value="">Seleccionar motivo...</option>';
+      
       data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
       data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
       data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
