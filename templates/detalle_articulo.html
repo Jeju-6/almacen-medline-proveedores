@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
   <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
     <i class="bi bi-box-seam"></i> Detalle del artículo
   </h4>
@@ -23,191 +23,134 @@
   </div>
 </div>
 
-<div class="row g-4">
-
-  <!-- Info principal -->
-  <div class="col-md-4">
-    <div class="card p-4 text-center mb-3">
+<!-- Fila superior: info compacta -->
+<div class="card mb-3 p-3">
+  <div class="row g-3 align-items-center">
+    <!-- Imagen -->
+    <div class="col-auto">
       {% if articulo.imagen %}
         <img src="{{ url_for('static', filename='uploads/' + articulo.imagen) }}"
-             style="width:140px; height:140px; object-fit:cover; border-radius:12px; margin:0 auto 16px;">
+             style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
       {% else %}
-        <div style="width:140px; height:140px; background:#f0f0f0; border-radius:12px;
-                    display:flex; align-items:center; justify-content:center; margin:0 auto 16px;">
-          <i class="bi bi-box" style="font-size:48px; color:#ccc;"></i>
+        <div style="width:80px; height:80px; background:#f0f8fc; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-box" style="font-size:32px; color:#0b4f6c;"></i>
         </div>
       {% endif %}
-
-      <div style="font-size:20px; font-weight:700; color:#0b4f6c;">{{ articulo.nombre }}</div>
-      <div style="font-size:13px; color:#888; margin-top:4px;">{{ articulo.nombre_proveedor }}</div>
-
-      {% if articulo.es_critico %}
-      <div class="mt-2"><span class="badge-critico">CRÍTICO</span></div>
+    </div>
+    <!-- Nombre y datos -->
+    <div class="col">
+      <div style="font-size:18px; font-weight:700; color:#0b4f6c;">{{ articulo.nombre }}</div>
+      <div style="font-size:13px; color:#888;">{{ articulo.nombre_proveedor }} · <code>{{ articulo.num_parte }}</code></div>
+      {% if articulo.es_critico %}<span class="badge-critico mt-1">CRÍTICO</span>{% endif %}
+      {% if articulo.descripcion %}<div style="font-size:12px; color:#aaa; margin-top:4px;">{{ articulo.descripcion }}</div>{% endif %}
+      {% if articulo.ubicacion %}
+        <div style="font-size:12px; color:#0b4f6c; margin-top:4px;">
+          <i class="bi bi-geo-alt-fill"></i> {{ articulo.ubicacion }}
+        </div>
       {% endif %}
-
-      <hr>
-
-      <div class="row g-2 text-center mt-1">
-        <div class="col-4">
-          <div style="font-size:22px; font-weight:700;
-            color:{% if articulo.stock_actual <= articulo.stock_minimo %}#dc3545{% elif articulo.stock_actual <= articulo.stock_minimo * 2 %}#fd7e14{% else %}#198754{% endif %};">
-            {{ articulo.stock_actual }}
-          </div>
-          <div style="font-size:11px; color:#888;">Stock actual</div>
+    </div>
+    <!-- Stats -->
+    <div class="col-auto d-flex gap-3 text-center">
+      <div>
+        <div style="font-size:22px; font-weight:700;
+          color:{% if articulo.stock_actual <= articulo.stock_minimo %}#dc3545{% elif articulo.stock_actual <= articulo.stock_minimo * 2 %}#fd7e14{% else %}#198754{% endif %};">
+          {{ articulo.stock_actual }}
         </div>
-        <div class="col-4">
-          <div style="font-size:22px; font-weight:700; color:#0b4f6c;">{{ articulo.stock_minimo }}</div>
-          <div style="font-size:11px; color:#888;">Mínimo</div>
-        </div>
-        <div class="col-4">
-          <div style="font-size:22px; font-weight:700; color:#198754;">{{ total_entradas }}</div>
-          <div style="font-size:11px; color:#888;">Entradas</div>
-        </div>
+        <div style="font-size:11px; color:#888;">Stock</div>
+      </div>
+      <div>
+        <div style="font-size:22px; font-weight:700; color:#0b4f6c;">{{ articulo.stock_minimo }}</div>
+        <div style="font-size:11px; color:#888;">Mínimo</div>
+      </div>
+      <div>
+        <div style="font-size:22px; font-weight:700; color:#198754;">{{ total_entradas }}</div>
+        <div style="font-size:11px; color:#888;">Entradas</div>
+      </div>
+      <div>
+        <div style="font-size:22px; font-weight:700; color:#dc3545;">{{ total_salidas }}</div>
+        <div style="font-size:11px; color:#888;">Salidas</div>
       </div>
     </div>
-
-    <!-- Datos del artículo -->
-    <div class="card p-3 mb-3">
-      <div style="font-weight:600; color:#0b4f6c; margin-bottom:12px; font-size:14px;">
-        <i class="bi bi-info-circle"></i> Información
-      </div>
-      <table style="font-size:13px; width:100%;">
-        <tr>
-          <td style="color:#888; padding:5px 0; width:130px;">Num. parte</td>
-          <td><code>{{ articulo.num_parte }}</code></td>
-        </tr>
-        <tr>
-          <td style="color:#888; padding:5px 0;">Unidad</td>
-          <td>{{ articulo.unidad_medida }}</td>
-        </tr>
-        <tr>
-          <td style="color:#888; padding:5px 0;">Descripción</td>
-          <td>{{ articulo.descripcion or '—' }}</td>
-        </tr>
-        <tr>
-          <td style="color:#888; padding:5px 0;">Ubicación</td>
-          <td>
-            {% if articulo.ubicacion %}
-              <span style="background:#e8f4f8; color:#0b4f6c; padding:3px 8px;
-                           border-radius:6px; font-size:12px; font-weight:600;">
-                <i class="bi bi-geo-alt-fill"></i> {{ articulo.ubicacion }}
-              </span>
-            {% else %}
-              <span style="color:#aaa;">Sin ubicación asignada</span>
-            {% endif %}
-          </td>
-        </tr>
-        <tr>
-          <td style="color:#888; padding:5px 0;">Total salidas</td>
-          <td><span class="badge bg-danger">{{ total_salidas }}</span></td>
-        </tr>
-        {% if articulo.link_compra %}
-        <tr>
-          <td style="color:#888; padding:5px 0;">Link compra</td>
-          <td>
-            <a href="{{ articulo.link_compra }}" target="_blank" style="font-size:12px;">
-              <i class="bi bi-box-arrow-up-right"></i> Ver producto
-            </a>
-          </td>
-        </tr>
-        {% endif %}
-      </table>
-    </div>
-
-    <!-- QR y Código de barras -->
-    <div class="card p-3 text-center">
-      <div style="font-weight:600; color:#0b4f6c; margin-bottom:12px; font-size:14px;">
-        <i class="bi bi-qr-code"></i> Códigos de identificación
-      </div>
-
-      <!-- QR -->
-      <div style="font-size:12px; color:#888; margin-bottom:4px;">QR para cámara de celular</div>
-      <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:8px;"></div>
-
-      <!-- Código de barras -->
+    <!-- QR compacto -->
+    <div class="col-auto text-center">
+      <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:4px;"></div>
+      <div style="font-size:10px; color:#888; margin-bottom:6px;">{{ articulo.num_parte }}</div>
       {% if barcode_b64 %}
-      <div style="font-size:12px; color:#888; margin-bottom:4px; margin-top:8px;">Código de barras para escáner</div>
       <img src="data:image/png;base64,{{ barcode_b64 }}"
-           style="width:100%; max-width:200px; margin:0 auto 8px; display:block;">
+           style="width:120px; display:block; margin:0 auto 6px;">
       {% endif %}
-
-      <div style="font-size:11px; color:#888; margin-bottom:12px;">
-        Num. parte: <strong>{{ articulo.num_parte }}</strong>
-      </div>
-      <button onclick="imprimirEtiqueta()" class="btn btn-sm" style="background:#0b4f6c; color:#fff; width:100%;">
-        <i class="bi bi-printer"></i> Imprimir etiqueta
+      <button onclick="imprimirEtiqueta()" class="btn btn-sm" style="background:#0b4f6c; color:#fff; font-size:11px;">
+        <i class="bi bi-printer"></i> Imprimir
       </button>
+      {% if articulo.link_compra %}
+      <a href="{{ articulo.link_compra }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1" style="font-size:11px;">
+        <i class="bi bi-cart"></i> Comprar
+      </a>
+      {% endif %}
     </div>
   </div>
-
-  <!-- Historial de movimientos -->
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
-        <span style="font-weight:600; color:#0b4f6c;">
-          <i class="bi bi-clock-history"></i> Historial de movimientos
-        </span>
-      </div>
-      <div class="card-body p-0">
-        {% if movimientos %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead style="background:#f0f8fc; font-size:13px;">
-              <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-                <th>Usuario</th>
-                <th>Observaciones</th>
-              </tr>
-            </thead>
-            <tbody style="font-size:13px;">
-              {% for mov in movimientos %}
-              <tr>
-                <td>{{ mov.fecha_hora }}</td>
-                <td>
-                  {% if mov.tipo == 'ENTRADA' %}
-                    <span class="badge bg-success">ENTRADA</span>
-                  {% else %}
-                    <span class="badge bg-danger">SALIDA</span>
-                  {% endif %}
-                </td>
-                <td><strong>{{ mov.cantidad }}</strong></td>
-                <td>
-                  {{ mov.nombre_usuario or 'Kiosco' }}
-                  {% if mov.modo_kiosco %}
-                    <span style="font-size:10px; color:#888;">(kiosco)</span>
-                  {% endif %}
-                </td>
-                <td style="color:#888;">{{ mov.observaciones or '—' }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="p-4 text-center" style="color:#aaa;">
-          <i class="bi bi-clock-history" style="font-size:32px;"></i>
-          <p class="mt-2">Sin movimientos registrados aún.</p>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- Modal impresión QR -->
+<!-- Historial de movimientos -->
+<div class="card">
+  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+    <span style="font-weight:600; color:#0b4f6c;">
+      <i class="bi bi-clock-history"></i> Historial de movimientos
+    </span>
+  </div>
+  <div class="card-body p-0">
+    {% if movimientos %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead style="background:#f0f8fc; font-size:13px;">
+          <tr>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Usuario</th>
+            <th>Observaciones</th>
+          </tr>
+        </thead>
+        <tbody style="font-size:13px;">
+          {% for mov in movimientos %}
+          <tr>
+            <td>{{ mov.fecha_hora }}</td>
+            <td>
+              {% if mov.tipo == 'ENTRADA' %}
+                <span class="badge bg-success">ENTRADA</span>
+              {% else %}
+                <span class="badge bg-danger">SALIDA</span>
+              {% endif %}
+            </td>
+            <td><strong>{{ mov.cantidad }}</strong></td>
+            <td>
+              {{ mov.nombre_usuario or 'Kiosco' }}
+              {% if mov.modo_kiosco %}<span style="font-size:10px; color:#888;">(kiosco)</span>{% endif %}
+            </td>
+            <td style="color:#888; font-size:12px;">{{ mov.observaciones or '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center" style="color:#aaa;">
+      <i class="bi bi-clock-history" style="font-size:32px;"></i>
+      <p class="mt-2">Sin movimientos registrados.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Print area oculto -->
 <div id="printArea" style="display:none;">
   <div style="text-align:center; font-family:Arial,sans-serif; padding:20px;">
-    <div style="font-size:16px; font-weight:bold; color:#0b4f6c; margin-bottom:4px;">
-      ALMACÉN MEDLINE
-    </div>
+    <div style="font-size:16px; font-weight:bold; color:#0b4f6c; margin-bottom:4px;">ALMACÉN MEDLINE</div>
     <div id="qrPrint" style="margin:10px auto;"></div>
     <div style="font-size:14px; font-weight:bold; margin-top:8px;">{{ articulo.nombre }}</div>
     <div style="font-size:12px; color:#555;">Num. parte: {{ articulo.num_parte }}</div>
     <div style="font-size:12px; color:#555;">{{ articulo.nombre_proveedor }}</div>
-    <div style="font-size:11px; color:#888; margin-top:4px;">{{ articulo.codigo_qr }}</div>
   </div>
 </div>
 {% endblock %}
