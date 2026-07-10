@@ -1702,12 +1702,14 @@ def perfil():
                 db.close()
                 return render_template('perfil.html', usuario=usuario)
             db.execute('''
-                UPDATE usuarios SET nombre=?, email=?, password_hash=? WHERE id_usuario=?
-            ''', (nombre, email, generate_password_hash(password_nueva), session['usuario_id']))
+                UPDATE usuarios SET nombre=%s, email=%s, password_hash=%s, area=%s, puesto=%s WHERE id_usuario=%s
+            ''', (nombre, email, generate_password_hash(password_nueva), area, puesto, session['usuario_id']))
         else:
-            db.execute('''
-                UPDATE usuarios SET nombre=?, email=? WHERE id_usuario=?
-            ''', (nombre, email, session['usuario_id']))
+         area = request.form.get('area') or None
+        puesto = request.form.get('puesto') or None
+        db.execute('''
+            UPDATE usuarios SET nombre=%s, email=%s, area=%s, puesto=%s WHERE id_usuario=%s
+        ''', (nombre, email, area, puesto, session['usuario_id']))
         db.commit()
         session['nombre'] = nombre
         flash('Perfil actualizado correctamente.', 'success')
@@ -1722,6 +1724,20 @@ def perfil():
     db.close()
     return render_template('perfil.html', usuario=usuario, proveedor_logo=proveedor_logo)
 
+@app.route('/api/mi_perfil')
+@login_requerido
+def api_mi_perfil():
+    db = get_db()
+    usuario = db.execute(
+        'SELECT nombre, area, puesto FROM usuarios WHERE id_usuario=%s',
+        (session['usuario_id'],)
+    ).fetchone()
+    db.close()
+    return jsonify({
+        'nombre': usuario['nombre'] if usuario else '',
+        'area': usuario['area'] if usuario else '',
+        'puesto': usuario['puesto'] if usuario else ''
+    })
 
 # ─── CONFIGURACIÓN ────────────────────────────────────────────────────────────
 

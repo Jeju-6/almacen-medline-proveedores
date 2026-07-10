@@ -126,7 +126,7 @@
 </div>
 
 <script>
-    // Cargar listas
+    // Cargar listas y datos del usuario si está logueado
   fetch('/api/listas')
     .then(r => r.json())
     .then(data => {
@@ -136,6 +136,32 @@
       data.puestos.forEach(p => puesto.innerHTML += `<option value="${p}">${p}</option>`);
       data.areas.forEach(a => area.innerHTML += `<option value="${a}">${a}</option>`);
       data.motivos.forEach(m => motivo.innerHTML += `<option value="${m}">${m}</option>`);
+
+      // Si hay sesión activa, cargar datos del usuario
+      fetch('/api/mi_perfil')
+        .then(r => r.json())
+        .then(user => {
+          if (user.nombre) {
+            const nombreInput = document.getElementById('nombreRetira');
+            if (nombreInput && !nombreInput.value) nombreInput.value = user.nombre;
+            nombreInput.readOnly = true;
+            nombreInput.style.background = '#f8f9fa';
+          }
+          if (user.puesto) {
+            for (let opt of puesto.options) {
+              if (opt.value === user.puesto) { opt.selected = true; break; }
+            }
+            puesto.disabled = true;
+            puesto.style.background = '#f8f9fa';
+          }
+          if (user.area) {
+            for (let opt of area.options) {
+              if (opt.value === user.area) { opt.selected = true; break; }
+            }
+            area.disabled = true;
+            area.style.background = '#f8f9fa';
+          }
+        }).catch(() => {});
     });
   let tipoSeleccionado = 'SALIDA';
   const codigoQR = '{{ articulo.codigo_qr }}';

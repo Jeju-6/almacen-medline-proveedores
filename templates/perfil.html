@@ -65,6 +65,20 @@
             <div class="form-text">El nombre de usuario no se puede cambiar.</div>
           </div>
 
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Área / Departamento</label>
+            <select name="area" class="form-select" id="selectAreaPerfil">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Puesto</label>
+            <select name="puesto" class="form-select" id="selectPuestoPerfil">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+
           <div class="col-md-12">
             <label class="form-label fw-semibold">Correo electrónico</label>
             <input type="email" name="email" class="form-control"
@@ -137,6 +151,16 @@
 {% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Cargar áreas y puestos
+    fetch('/api/listas')
+      .then(r => r.json())
+      .then(data => {
+        const selectArea = document.getElementById('selectAreaPerfil');
+        const selectPuesto = document.getElementById('selectPuestoPerfil');
+        data.areas.forEach(a => selectArea.innerHTML += `<option value="${a}" ${a === '{{ usuario.area }}' ? 'selected' : ''}>${a}</option>`);
+        data.puestos.forEach(p => selectPuesto.innerHTML += `<option value="${p}" ${p === '{{ usuario.puesto }}' ? 'selected' : ''}>${p}</option>`);
+      });
+
     // Validación de contraseñas
     const passNueva = document.getElementById('passNueva');
     const passConfirmar = document.getElementById('passConfirmar');
