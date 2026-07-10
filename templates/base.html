@@ -334,35 +334,61 @@
     </a>
     {% endif %}
     <hr>
-    {% if session.rol == 'admin' %}
-    <a class="nav-link {% if request.endpoint == 'configuracion' %}active{% endif %}" href="{{ url_for('configuracion') }}" onclick="closeSidebarMobile()">
-      <i class="bi bi-gear"></i> Configuración
-    </a>
-    {% endif %}
-    <a class="nav-link {% if request.endpoint == 'perfil' %}active{% endif %}" href="{{ url_for('perfil') }}" onclick="closeSidebarMobile()">
-      <i class="bi bi-person-circle"></i> Mi perfil
-    </a>
-    <a class="nav-link" href="{{ url_for('logout') }}" onclick="closeSidebarMobile()">
-      <i class="bi bi-box-arrow-left"></i> Cerrar sesión
-    </a>
   </nav>
 </div>
 
 <div class="main-content">
   <div class="topbar">
-    <span style="font-weight:500; color:var(--brand-color);">
-      <i class="bi bi-person-circle"></i> {{ session.nombre }}
-      <span class="badge bg-secondary ms-2" style="font-size:11px;">{{ session.rol }}</span>
+    <span style="font-weight:500; color:var(--brand-color); font-size:15px;">
+      <i class="bi bi-box-seam"></i> Almacén Medline
     </span>
     <form action="{{ url_for('buscar') }}" method="GET" style="display:flex; gap:8px; align-items:center;">
-      <div class="input-group input-group-sm" style="width:260px;">
+      <div class="input-group input-group-sm" style="width:280px;">
         <input type="text" name="q" class="form-control" placeholder="🔍 Buscar artículos, proveedores...">
         <button type="submit" class="btn" style="background:#0b4f6c; color:#fff;">
           <i class="bi bi-search"></i>
         </button>
       </div>
     </form>
-    <span style="font-size:13px; color:#888;">{{ now_str if now_str else '' }}</span>
+    <!-- Usuario con dropdown -->
+    <div style="position:relative;">
+      <button onclick="toggleUserMenu()" 
+              style="background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; hover:background:#f0f0f0;">
+        <div style="width:34px; height:34px; background:#0b4f6c; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+          <i class="bi bi-person-fill" style="color:#fff; font-size:16px;"></i>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:13px; font-weight:600; color:#0b4f6c;">{{ session.nombre }}</div>
+          <div style="font-size:11px; color:#888;">{{ session.rol }}</div>
+        </div>
+        <i class="bi bi-chevron-down" style="color:#888; font-size:12px;"></i>
+      </button>
+      <!-- Dropdown menu -->
+      <div id="userMenu" style="display:none; position:absolute; right:0; top:calc(100% + 8px);
+                                  background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.12);
+                                  border:1px solid #eee; width:220px; z-index:500; overflow:hidden;">
+        <div style="padding:16px; background:#f8f9fa; border-bottom:1px solid #eee;">
+          <div style="font-weight:600; color:#0b4f6c;">{{ session.nombre }}</div>
+          <div style="font-size:12px; color:#888; margin-top:2px;">{{ session.rol }}</div>
+          <div style="font-size:12px; color:#888; margin-top:2px;">{{ now_str if now_str else '' }}</div>
+        </div>
+        <a href="{{ url_for('perfil') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#333; text-decoration:none; font-size:14px;" 
+           onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <i class="bi bi-person-circle" style="color:#0b4f6c;"></i> Mi perfil
+        </a>
+        {% if session.rol == 'admin' %}
+        <a href="{{ url_for('configuracion') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#333; text-decoration:none; font-size:14px;"
+           onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='none'">
+          <i class="bi bi-gear" style="color:#0b4f6c;"></i> Configuración
+        </a>
+        {% endif %}
+        <div style="border-top:1px solid #eee; margin:4px 0;"></div>
+        <a href="{{ url_for('logout') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#dc3545; text-decoration:none; font-size:14px;"
+           onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='none'">
+          <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+        </a>
+      </div>
+    </div>
   </div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -389,6 +415,17 @@
     overlay.classList.toggle('active');
     icon.className = sidebar.classList.contains('open') ? 'bi bi-x-lg' : 'bi bi-list';
   }
+  function toggleUserMenu() {
+    const menu = document.getElementById('userMenu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+  // Cerrar al hacer clic fuera
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('userMenu');
+    if (menu && !e.target.closest('[onclick="toggleUserMenu()"]') && !menu.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+  });
   function closeSidebarMobile() {
     if (window.innerWidth <= 768) {
       const sidebar = document.getElementById('sidebar');
