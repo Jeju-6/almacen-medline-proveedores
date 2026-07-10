@@ -525,6 +525,45 @@
       .then(() => console.log('SW registrado'))
       .catch(err => console.log('SW error:', err));
   }
+  function aplicarModoOscuroProfundo() {
+    if (!document.body.classList.contains('dark-mode')) return;
+    
+    // Aplicar a todos los elementos con fondos claros
+    document.querySelectorAll('*').forEach(el => {
+      const style = el.getAttribute('style') || '';
+      const computed = window.getComputedStyle(el);
+      const bg = computed.backgroundColor;
+      
+      // Detectar fondos claros (RGB alto = claro)
+      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+        const match = bg.match(/\d+/g);
+        if (match) {
+          const r = parseInt(match[0]);
+          const g = parseInt(match[1]);
+          const b = parseInt(match[2]);
+          const brillo = (r + g + b) / 3;
+          
+          if (brillo > 150) {
+            el.style.backgroundColor = '#1e1e1e';
+            el.style.color = el.style.color || '#e8e8e8';
+          }
+        }
+      }
+    });
+  }
+
+  // Ejecutar cuando carga y cuando cambia el modo
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(aplicarModoOscuroProfundo, 100);
+  });
+  
+  // Observar cambios en el DOM
+  const observador = new MutationObserver(() => {
+    if (document.body.classList.contains('dark-mode')) {
+      setTimeout(aplicarModoOscuroProfundo, 50);
+    }
+  });
+  observador.observe(document.body, { childList: true, subtree: true });
 </script>
 </body>
 </html>
