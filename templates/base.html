@@ -62,7 +62,7 @@
       .btn { font-size: 13px; }
     }
 
-    /* MODO OSCURO - Paleta natural */
+    /* MODO OSCURO */
     body.dark-mode { background-color: #121212 !important; color: #e8e8e8 !important; }
     body.dark-mode .sidebar { background-color: #1e1e1e !important; border-right: 1px solid #2d2d2d !important; }
     body.dark-mode .sidebar .brand { color: #fff !important; border-color: #2d2d2d !important; }
@@ -100,59 +100,18 @@
     body.dark-mode small, body.dark-mode .text-muted { color: #888 !important; }
     body.dark-mode .badge-critico { background-color: #c62828 !important; }
     body.dark-mode .form-check-input:not(:checked) { background-color: #252525 !important; border-color: #3d3d3d !important; }
-    body.dark-mode .dropdown-menu { background-color: #1e1e1e !important; border-color: #2d2d2d !important; }
     body.dark-mode a { color: #64b5f6 !important; }
     body.dark-mode a:hover { color: #90caf9 !important; }
-    body.dark-mode .nav-link { color: #b0b0b0 !important; }
     body.dark-mode .badge.bg-secondary { background-color: #3d3d3d !important; }
 
-    /* Forzar fondo oscuro en elementos con estilos inline */
-    body.dark-mode [style*="background:#fff"],
-    body.dark-mode [style*="background: #fff"],
-    body.dark-mode [style*="background-color:#fff"],
-    body.dark-mode [style*="background:#f"],
-    body.dark-mode [style*="background: #f"],
-    body.dark-mode [style*="background:#e"],
-    body.dark-mode [style*="background: #e"],
-    body.dark-mode [style*="background:white"],
-    body.dark-mode [style*="background: white"] {
-      background-color: #1e1e1e !important;
-      background: #1e1e1e !important;
-    }
-    body.dark-mode [style*="color:#0b4f6c"],
-    body.dark-mode [style*="color: #0b4f6c"] {
-      color: #64b5f6 !important;
-    }
-    body.dark-mode [style*="color:#888"],
-    body.dark-mode [style*="color: #888"],
-    body.dark-mode [style*="color:#aaa"],
-    body.dark-mode [style*="color:#555"],
-    body.dark-mode [style*="color:#666"] {
-      color: #999 !important;
-    }
-    body.dark-mode [style*="color:#333"],
-    body.dark-mode [style*="color: #333"] {
-      color: #e8e8e8 !important;
-    }
-    body.dark-mode [style*="border-bottom:1px solid #eee"],
-    body.dark-mode [style*="border-bottom: 1px solid #eee"],
-    body.dark-mode [style*="border:1px solid #eee"],
-    body.dark-mode [style*="border: 1px solid #eee"] {
-      border-color: #2d2d2d !important;
-    }
-    body.dark-mode [style*="background:#f0f8fc"],
-    body.dark-mode [style*="background: #f0f8fc"],
-    body.dark-mode [style*="background:#f8f9fa"],
-    body.dark-mode [style*="background: #f8f9fa"],
-    body.dark-mode [style*="background:#fef2f2"],
-    body.dark-mode [style*="background:#fff8f0"],
-    body.dark-mode [style*="background:#fff8e1"],
-    body.dark-mode [style*="background:#e8f4f8"],
-    body.dark-mode [style*="background:#e8f5e9"] {
-      background-color: #252525 !important;
-      background: #252525 !important;
+    body, .card, .sidebar, .topbar, .mobile-topbar, input, select, textarea {
+      transition: background-color 0.3s ease, color 0.3s ease !important;
     }
 
+    @keyframes pulsar {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
   </style>
 
   <link rel="manifest" href="/static/manifest.json">
@@ -163,10 +122,9 @@
   <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
 
   <script>
+    // Solo activar modo oscuro si el usuario lo eligió manualmente
     try {
-      const guardado = localStorage.getItem('darkMode');
-      const sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (guardado === 'true' || (guardado === null && sistemaOscuro)) {
+      if (localStorage.getItem('darkMode') === 'true') {
         document.documentElement.classList.add('dark-mode');
         document.documentElement.style.backgroundColor = '#121212';
       }
@@ -175,6 +133,55 @@
 
   {% block extra_css %}{% endblock %}
 </head>
+<body>
+
+<!-- Splash Screen -->
+<div id="splashScreen" style="position:fixed; inset:0; z-index:9999; background:#0052BA;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition: opacity 0.5s ease;">
+  <img src="/static/icons/icon-512.png"
+       style="width:140px; height:140px; border-radius:24px;
+              box-shadow:0 8px 32px rgba(0,0,0,0.3);
+              animation: pulsar 1.5s infinite ease-in-out;">
+  <div style="color:#fff; font-size:22px; font-weight:700; margin-top:20px; letter-spacing:1px;">
+    Almacén Medline
+  </div>
+  <div style="color:#cce7f0; font-size:13px; margin-top:6px;">Sistema de Proveedores</div>
+  <div style="width:200px; height:4px; background:rgba(255,255,255,0.2);
+              border-radius:2px; margin-top:40px; overflow:hidden;">
+    <div id="splashBar" style="height:100%; width:0%; background:#fff;
+                                border-radius:2px; transition:width 0.3s ease;"></div>
+  </div>
+  <div style="color:#cce7f0; font-size:12px; margin-top:10px;" id="splashText">Iniciando...</div>
+</div>
+
+<script>
+  const esPWA = window.matchMedia('(display-mode: standalone)').matches ||
+                window.navigator.standalone === true;
+  const yaVioSplash = sessionStorage.getItem('splashVisto');
+  if (esPWA && !yaVioSplash) {
+    sessionStorage.setItem('splashVisto', '1');
+    const splash = document.getElementById('splashScreen');
+    const bar = document.getElementById('splashBar');
+    const text = document.getElementById('splashText');
+    const pasos = [
+      { w: 50, t: 'Cargando...', d: 150 },
+      { w: 100, t: '¡Listo!', d: 100 }
+    ];
+    let i = 0;
+    function siguiente() {
+      if (i < pasos.length) {
+        const paso = pasos[i]; bar.style.width = paso.w + '%'; text.textContent = paso.t; i++;
+        setTimeout(siguiente, paso.d);
+      } else {
+        setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 500); }, 200);
+      }
+    }
+    window.addEventListener('load', () => setTimeout(siguiente, 100));
+  } else {
+    document.getElementById('splashScreen').style.display = 'none';
+  }
+</script>
 
 <!-- Botón flotante QR -->
 {% if session.usuario_id %}
@@ -192,34 +199,25 @@
       <span style="font-weight:700; color:#0b4f6c; font-size:16px;">
         <i class="bi bi-qr-code-scan"></i> Escanear artículo
       </span>
-      <button onclick="cerrarModalQR()"
-              style="background:none; border:none; font-size:22px; color:#888; cursor:pointer;">✕</button>
+      <button onclick="cerrarModalQR()" style="background:none; border:none; font-size:22px; color:#888; cursor:pointer;">✕</button>
     </div>
-
-    <!-- Opción cámara (solo móvil) -->
     <div id="opcionCamara" style="display:none; margin-bottom:16px;">
       <div id="readerModalQR" style="width:100%; min-height:200px; border:2px dashed #0b4f6c; border-radius:10px; overflow:hidden; background:#f8f9fa; margin-bottom:8px;"></div>
-      <button onclick="detenerCamaraModal()"
-              style="width:100%; padding:8px; background:#f0f0f0; border:none; border-radius:8px; color:#666; cursor:pointer; font-size:13px;">
+      <button onclick="detenerCamaraModal()" style="width:100%; padding:8px; background:#f0f0f0; border:none; border-radius:8px; color:#666; cursor:pointer; font-size:13px;">
         <i class="bi bi-x"></i> Cancelar cámara
       </button>
     </div>
-
-    <!-- Botón abrir cámara -->
     <button id="btnAbrirCamara" onclick="abrirCamaraModal()"
             style="width:100%; padding:14px; background:#1a7a9e; color:#fff; border:none;
                    border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; margin-bottom:12px;">
       <i class="bi bi-camera"></i> Escanear con cámara
     </button>
-
     <div style="text-align:center; color:#aaa; font-size:12px; margin-bottom:12px;">— o ingresa el número de parte —</div>
-
     <div style="display:flex; gap:8px;">
       <input type="text" id="qrManualInput" placeholder="Ej: 5250"
              style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px; font-size:15px;"
              onkeypress="if(event.key==='Enter') buscarQRManual()">
-      <button onclick="buscarQRManual()"
-              style="padding:12px 20px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+      <button onclick="buscarQRManual()" style="padding:12px 20px; background:#0b4f6c; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
         Ir
       </button>
     </div>
@@ -229,50 +227,37 @@
 <script>
   var scannerModal = null;
   var scannerModalActivo = false;
-
   function cerrarModalQR() {
     document.getElementById('modalQR').style.display = 'none';
     detenerCamaraModal();
     document.getElementById('qrManualInput').value = '';
   }
-
   function abrirCamaraModal() {
     if (typeof Html5Qrcode === 'undefined') {
       var script = document.createElement('script');
       script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
       script.onload = function() { iniciarCamaraModal(); };
       document.head.appendChild(script);
-    } else {
-      iniciarCamaraModal();
-    }
+    } else { iniciarCamaraModal(); }
   }
-
   function iniciarCamaraModal() {
     document.getElementById('opcionCamara').style.display = 'block';
     document.getElementById('btnAbrirCamara').style.display = 'none';
     document.getElementById('readerModalQR').innerHTML = '';
-
     scannerModal = new Html5Qrcode("readerModalQR");
     Html5Qrcode.getCameras().then(function(cameras) {
       if (cameras && cameras.length > 0) {
         var camaraId = cameras[cameras.length - 1].id;
         for (var i = 0; i < cameras.length; i++) {
           var label = cameras[i].label.toLowerCase();
-          if (label.includes('back') || label.includes('trasera') || label.includes('rear')) {
-            camaraId = cameras[i].id;
-            break;
-          }
+          if (label.includes('back') || label.includes('trasera') || label.includes('rear')) { camaraId = cameras[i].id; break; }
         }
-        scannerModal.start(
-          camaraId,
-          { fps: 15, qrbox: { width: 200, height: 200 } },
+        scannerModal.start(camaraId, { fps: 15, qrbox: { width: 200, height: 200 } },
           function(decodedText) {
-            detenerCamaraModal();
-            cerrarModalQR();
+            detenerCamaraModal(); cerrarModalQR();
             var codigo = decodedText.includes('/scan/') ? decodedText.split('/scan/').pop() : decodedText;
             window.location.replace('/scan/' + encodeURIComponent(codigo));
-          },
-          function() {}
+          }, function() {}
         ).then(function() { scannerModalActivo = true; });
       }
     }).catch(function() {
@@ -281,107 +266,18 @@
       alert('No se pudo acceder a la cámara. Usa la búsqueda manual.');
     });
   }
-
   function detenerCamaraModal() {
-    if (scannerModal && scannerModalActivo) {
-      scannerModal.stop().catch(function() {});
-      scannerModalActivo = false;
-    }
+    if (scannerModal && scannerModalActivo) { scannerModal.stop().catch(function() {}); scannerModalActivo = false; }
     document.getElementById('opcionCamara').style.display = 'none';
     document.getElementById('btnAbrirCamara').style.display = 'block';
     document.getElementById('readerModalQR').innerHTML = '';
   }
-
   function buscarQRManual() {
     var codigo = document.getElementById('qrManualInput').value.trim();
-    if (codigo) {
-      cerrarModalQR();
-      window.location.replace('/scan/' + encodeURIComponent(codigo));
-    }
+    if (codigo) { cerrarModalQR(); window.location.replace('/scan/' + encodeURIComponent(codigo)); }
   }
 </script>
 {% endif %}
-
-<body>
-
-<!-- Splash Screen -->
-<div id="splashScreen" style="
-  position:fixed; inset:0; z-index:9999;
-  background:#0052BA;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  transition: opacity 0.5s ease;">
-  
-  <img src="/static/icons/icon-512.png" 
-       style="width:140px; height:140px; border-radius:24px; 
-              box-shadow:0 8px 32px rgba(0,0,0,0.3);
-              animation: pulsar 1.5s infinite ease-in-out;">
-  
-  <div style="color:#fff; font-size:22px; font-weight:700; margin-top:20px; letter-spacing:1px;">
-    Almacén Medline
-  </div>
-  <div style="color:#cce7f0; font-size:13px; margin-top:6px;">
-    Sistema de Proveedores
-  </div>
-
-  <!-- Barra de carga -->
-  <div style="width:200px; height:4px; background:rgba(255,255,255,0.2); 
-              border-radius:2px; margin-top:40px; overflow:hidden;">
-    <div id="splashBar" style="height:100%; width:0%; background:#fff; 
-                                border-radius:2px; transition:width 0.3s ease;"></div>
-  </div>
-  <div style="color:#cce7f0; font-size:12px; margin-top:10px;" id="splashText">
-    Iniciando...
-  </div>
-</div>
-
-<style>
-  @keyframes pulsar {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-</style>
-
-<script>
- // Splash screen solo en PWA instalada y solo la primera vez por sesión
-  const esPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                window.navigator.standalone === true;
-  const yaVioSplash = sessionStorage.getItem('splashVisto');
-  
-  if (esPWA && !yaVioSplash) {
-    sessionStorage.setItem('splashVisto', '1');
-    const splash = document.getElementById('splashScreen');
-    const bar = document.getElementById('splashBar');
-    const text = document.getElementById('splashText');
-    
-    const pasos = [
-      { w: 30, t: 'Conectando...', d: 300 },
-      { w: 60, t: 'Cargando datos...', d: 400 },
-      { w: 85, t: 'Casi listo...', d: 300 },
-      { w: 100, t: '¡Listo!', d: 200 }
-    ];
-    
-    let i = 0;
-    function siguiente() {
-      if (i < pasos.length) {
-        const paso = pasos[i];
-        bar.style.width = paso.w + '%';
-        text.textContent = paso.t;
-        i++;
-        setTimeout(siguiente, paso.d);
-      } else {
-        setTimeout(() => {
-          splash.style.opacity = '0';
-          setTimeout(() => { splash.style.display = 'none'; }, 500);
-        }, 200);
-      }
-    }
-    
-    window.addEventListener('load', () => setTimeout(siguiente, 300));
-  } else {
-    document.getElementById('splashScreen').style.display = 'none';
-  }
-</script>
 
 <div class="mobile-topbar">
   <button class="hamburger" onclick="toggleSidebar()">
@@ -435,9 +331,6 @@
       <i class="bi bi-file-earmark-arrow-up"></i> Importar
     </a>
     {% endif %}
-    <a class="nav-link" href="{{ url_for('kiosco') }}" onclick="closeSidebarMobile()">
-     <i class="bi bi-qr-code-scan"></i> Modo Kiosco
-    </a>
     <hr>
     {% if session.rol == 'admin' %}
     <a class="nav-link {% if request.endpoint == 'configuracion' %}active{% endif %}" href="{{ url_for('configuracion') }}" onclick="closeSidebarMobile()">
@@ -504,19 +397,36 @@
       icon.className = 'bi bi-list';
     }
   }
-  // Modo oscuro
+  // Modo oscuro - solo si el usuario lo activó manualmente
   try {
-    const guardado = localStorage.getItem('darkMode');
-    const sistemaOscuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (guardado === 'true' || (guardado === null && sistemaOscuro)) {
+    if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark-mode');
     }
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-      if (localStorage.getItem('darkMode') === null) {
-        document.body.classList.toggle('dark-mode', e.matches);
+  } catch(e) {}
+
+  function aplicarModoOscuroProfundo() {
+    if (!document.body.classList.contains('dark-mode')) return;
+    document.querySelectorAll('*').forEach(el => {
+      const computed = window.getComputedStyle(el);
+      const bg = computed.backgroundColor;
+      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+        const match = bg.match(/\d+/g);
+        if (match) {
+          const brillo = (parseInt(match[0]) + parseInt(match[1]) + parseInt(match[2])) / 3;
+          if (brillo > 150) {
+            el.style.backgroundColor = '#1e1e1e';
+            if (!el.style.color) el.style.color = '#e8e8e8';
+          }
+        }
       }
     });
-  } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', () => setTimeout(aplicarModoOscuroProfundo, 100));
+  const observador = new MutationObserver(() => {
+    if (document.body.classList.contains('dark-mode')) setTimeout(aplicarModoOscuroProfundo, 50);
+  });
+  observador.observe(document.body, { childList: true, subtree: true });
 </script>
 {% block extra_js %}{% endblock %}
 <script>
@@ -525,45 +435,6 @@
       .then(() => console.log('SW registrado'))
       .catch(err => console.log('SW error:', err));
   }
-  function aplicarModoOscuroProfundo() {
-    if (!document.body.classList.contains('dark-mode')) return;
-    
-    // Aplicar a todos los elementos con fondos claros
-    document.querySelectorAll('*').forEach(el => {
-      const style = el.getAttribute('style') || '';
-      const computed = window.getComputedStyle(el);
-      const bg = computed.backgroundColor;
-      
-      // Detectar fondos claros (RGB alto = claro)
-      if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
-        const match = bg.match(/\d+/g);
-        if (match) {
-          const r = parseInt(match[0]);
-          const g = parseInt(match[1]);
-          const b = parseInt(match[2]);
-          const brillo = (r + g + b) / 3;
-          
-          if (brillo > 150) {
-            el.style.backgroundColor = '#1e1e1e';
-            el.style.color = el.style.color || '#e8e8e8';
-          }
-        }
-      }
-    });
-  }
-
-  // Ejecutar cuando carga y cuando cambia el modo
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(aplicarModoOscuroProfundo, 100);
-  });
-  
-  // Observar cambios en el DOM
-  const observador = new MutationObserver(() => {
-    if (document.body.classList.contains('dark-mode')) {
-      setTimeout(aplicarModoOscuroProfundo, 50);
-    }
-  });
-  observador.observe(document.body, { childList: true, subtree: true });
 </script>
 </body>
 </html>
