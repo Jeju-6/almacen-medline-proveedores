@@ -286,9 +286,34 @@
     <i class="bi bi-list" id="hamburger-icon"></i>
   </button>
   <span class="brand-text"><i class="bi bi-box-seam"></i> Almacén Medline</span>
-  <div class="mobile-user">
-    <div>{{ session.nombre }}</div>
-    <div><span class="badge bg-secondary" style="font-size:10px;">{{ session.rol }}</span></div>
+  <div style="position:relative;">
+    <button onclick="toggleUserMenuMobile()"
+            style="background:none; border:none; cursor:pointer; padding:4px;">
+      <div style="width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%;
+                  display:flex; align-items:center; justify-content:center;">
+        <i class="bi bi-person-fill" style="color:#fff; font-size:16px;"></i>
+      </div>
+    </button>
+    <div id="userMenuMobile" style="display:none; position:absolute; right:0; top:calc(100% + 8px);
+                                     background:#fff; border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.2);
+                                     border:1px solid #eee; width:220px; z-index:500; overflow:hidden;">
+      <div style="padding:14px 16px; background:#f8f9fa; border-bottom:1px solid #eee;">
+        <div style="font-weight:600; color:#0b4f6c; font-size:14px;">{{ session.nombre }}</div>
+        <div style="font-size:12px; color:#888;">{{ session.rol }}</div>
+      </div>
+      <a href="{{ url_for('perfil') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#333; text-decoration:none; font-size:14px;">
+        <i class="bi bi-person-circle" style="color:#0b4f6c;"></i> Mi perfil
+      </a>
+      {% if session.rol == 'admin' %}
+      <a href="{{ url_for('configuracion') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#333; text-decoration:none; font-size:14px;">
+        <i class="bi bi-gear" style="color:#0b4f6c;"></i> Configuración
+      </a>
+      {% endif %}
+      <div style="border-top:1px solid #eee; margin:4px 0;"></div>
+      <a href="{{ url_for('logout') }}" style="display:flex; align-items:center; gap:10px; padding:12px 16px; color:#dc3545; text-decoration:none; font-size:14px;">
+        <i class="bi bi-box-arrow-left"></i> Cerrar sesión
+      </a>
+    </div>
   </div>
 </div>
 
@@ -424,6 +449,20 @@
     const menu = document.getElementById('userMenu');
     if (menu && !e.target.closest('[onclick="toggleUserMenu()"]') && !menu.contains(e.target)) {
       menu.style.display = 'none';
+    }
+  });
+  function toggleUserMenuMobile() {
+    const menu = document.getElementById('userMenuMobile');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('userMenu');
+    const menuMobile = document.getElementById('userMenuMobile');
+    if (menu && !e.target.closest('[onclick="toggleUserMenu()"]') && !menu.contains(e.target)) {
+      menu.style.display = 'none';
+    }
+    if (menuMobile && !e.target.closest('[onclick="toggleUserMenuMobile()"]') && !menuMobile.contains(e.target)) {
+      menuMobile.style.display = 'none';
     }
   });
   function closeSidebarMobile() {
