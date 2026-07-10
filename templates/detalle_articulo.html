@@ -23,123 +23,137 @@
   </div>
 </div>
 
-<!-- Fila superior: info compacta -->
-<div class="card mb-3 p-3">
-  <div class="row g-3 align-items-center">
-    <!-- Imagen -->
-    <div class="col-auto">
+<div class="row g-3">
+  <!-- Columna izquierda -->
+  <div class="col-md-3">
+
+    <!-- Card info principal -->
+    <div class="card p-3 mb-3 text-center">
       {% if articulo.imagen %}
         <img src="{{ url_for('static', filename='uploads/' + articulo.imagen) }}"
-             style="width:80px; height:80px; object-fit:cover; border-radius:10px;">
+             style="width:100px; height:100px; object-fit:cover; border-radius:10px; margin:0 auto 10px;">
       {% else %}
-        <div style="width:80px; height:80px; background:#f0f8fc; border-radius:10px;
-                    display:flex; align-items:center; justify-content:center;">
-          <i class="bi bi-box" style="font-size:32px; color:#0b4f6c;"></i>
+        <div style="width:100px; height:100px; background:#f0f8fc; border-radius:10px;
+                    display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
+          <i class="bi bi-box" style="font-size:40px; color:#0b4f6c;"></i>
         </div>
       {% endif %}
-    </div>
-    <!-- Nombre y datos -->
-    <div class="col">
-      <div style="font-size:18px; font-weight:700; color:#0b4f6c;">{{ articulo.nombre }}</div>
-      <div style="font-size:13px; color:#888;">{{ articulo.nombre_proveedor }} · <code>{{ articulo.num_parte }}</code></div>
+      <div style="font-size:16px; font-weight:700; color:#0b4f6c;">{{ articulo.nombre }}</div>
+      <div style="font-size:12px; color:#888;">{{ articulo.nombre_proveedor }}</div>
+      <div style="font-size:12px; color:#888;"><code>{{ articulo.num_parte }}</code></div>
       {% if articulo.es_critico %}<span class="badge-critico mt-1">CRÍTICO</span>{% endif %}
-      {% if articulo.descripcion %}<div style="font-size:12px; color:#aaa; margin-top:4px;">{{ articulo.descripcion }}</div>{% endif %}
       {% if articulo.ubicacion %}
-        <div style="font-size:12px; color:#0b4f6c; margin-top:4px;">
+        <div style="font-size:12px; color:#0b4f6c; margin-top:6px;">
           <i class="bi bi-geo-alt-fill"></i> {{ articulo.ubicacion }}
         </div>
       {% endif %}
-    </div>
-    <!-- Stats -->
-    <div class="col-auto d-flex gap-3 text-center">
-      <div>
-        <div style="font-size:22px; font-weight:700;
-          color:{% if articulo.stock_actual <= articulo.stock_minimo %}#dc3545{% elif articulo.stock_actual <= articulo.stock_minimo * 2 %}#fd7e14{% else %}#198754{% endif %};">
-          {{ articulo.stock_actual }}
-        </div>
-        <div style="font-size:11px; color:#888;">Stock</div>
-      </div>
-      <div>
-        <div style="font-size:22px; font-weight:700; color:#0b4f6c;">{{ articulo.stock_minimo }}</div>
-        <div style="font-size:11px; color:#888;">Mínimo</div>
-      </div>
-      <div>
-        <div style="font-size:22px; font-weight:700; color:#198754;">{{ total_entradas }}</div>
-        <div style="font-size:11px; color:#888;">Entradas</div>
-      </div>
-      <div>
-        <div style="font-size:22px; font-weight:700; color:#dc3545;">{{ total_salidas }}</div>
-        <div style="font-size:11px; color:#888;">Salidas</div>
-      </div>
-    </div>
-    <!-- QR compacto -->
-    <div class="col-auto text-center">
-      <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:4px;"></div>
-      <div style="font-size:10px; color:#888; margin-bottom:6px;">{{ articulo.num_parte }}</div>
-      {% if barcode_b64 %}
-      <img src="data:image/png;base64,{{ barcode_b64 }}"
-           style="width:120px; display:block; margin:0 auto 6px;">
-      {% endif %}
-      <button onclick="imprimirEtiqueta()" class="btn btn-sm" style="background:#0b4f6c; color:#fff; font-size:11px;">
-        <i class="bi bi-printer"></i> Imprimir
-      </button>
       {% if articulo.link_compra %}
-      <a href="{{ articulo.link_compra }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1" style="font-size:11px;">
-        <i class="bi bi-cart"></i> Comprar
-      </a>
+        <a href="{{ articulo.link_compra }}" target="_blank" 
+           class="btn btn-sm btn-outline-primary mt-2" style="font-size:12px;">
+          <i class="bi bi-cart"></i> Link de compra
+        </a>
       {% endif %}
-    </div>
-  </div>
-</div>
 
-<!-- Historial de movimientos -->
-<div class="card">
-  <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
-    <span style="font-weight:600; color:#0b4f6c;">
-      <i class="bi bi-clock-history"></i> Historial de movimientos
-    </span>
+      <hr style="margin:10px 0;">
+
+      <!-- Stats -->
+      <div class="d-flex justify-content-around">
+        <div>
+          <div style="font-size:20px; font-weight:700;
+            color:{% if articulo.stock_actual <= articulo.stock_minimo %}#dc3545
+                  {% elif articulo.stock_actual <= articulo.stock_minimo * 2 %}#fd7e14
+                  {% else %}#198754{% endif %};">
+            {{ articulo.stock_actual }}
+          </div>
+          <div style="font-size:10px; color:#888;">Stock</div>
+        </div>
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#0b4f6c;">{{ articulo.stock_minimo }}</div>
+          <div style="font-size:10px; color:#888;">Mínimo</div>
+        </div>
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#198754;">{{ total_entradas }}</div>
+          <div style="font-size:10px; color:#888;">Entradas</div>
+        </div>
+        <div>
+          <div style="font-size:20px; font-weight:700; color:#dc3545;">{{ total_salidas }}</div>
+          <div style="font-size:10px; color:#888;">Salidas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card QR y código de barras -->
+    <div class="card p-3 text-center">
+      <div style="font-size:13px; font-weight:600; color:#0b4f6c; margin-bottom:8px;">
+        <i class="bi bi-qr-code"></i> Códigos de identificación
+      </div>
+      <div style="font-size:11px; color:#888; margin-bottom:4px;">QR — cámara celular</div>
+      <div id="qrcode" style="display:flex; justify-content:center; margin-bottom:8px;"></div>
+      {% if barcode_b64 %}
+      <div style="font-size:11px; color:#888; margin-bottom:4px;">Código de barras — escáner</div>
+      <img src="data:image/png;base64,{{ barcode_b64 }}"
+           style="width:100%; max-width:180px; margin:0 auto 8px; display:block;">
+      {% endif %}
+      <div style="font-size:10px; color:#aaa; margin-bottom:8px;">{{ articulo.num_parte }}</div>
+      <button onclick="imprimirEtiqueta()" class="btn btn-sm" 
+              style="background:#0b4f6c; color:#fff; width:100%; font-size:12px;">
+        <i class="bi bi-printer"></i> Imprimir etiqueta
+      </button>
+    </div>
+
   </div>
-  <div class="card-body p-0">
-    {% if movimientos %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead style="background:#f0f8fc; font-size:13px;">
-          <tr>
-            <th>Fecha</th>
-            <th>Tipo</th>
-            <th>Cantidad</th>
-            <th>Usuario</th>
-            <th>Observaciones</th>
-          </tr>
-        </thead>
-        <tbody style="font-size:13px;">
-          {% for mov in movimientos %}
-          <tr>
-            <td>{{ mov.fecha_hora }}</td>
-            <td>
-              {% if mov.tipo == 'ENTRADA' %}
-                <span class="badge bg-success">ENTRADA</span>
-              {% else %}
-                <span class="badge bg-danger">SALIDA</span>
-              {% endif %}
-            </td>
-            <td><strong>{{ mov.cantidad }}</strong></td>
-            <td>
-              {{ mov.nombre_usuario or 'Kiosco' }}
-              {% if mov.modo_kiosco %}<span style="font-size:10px; color:#888;">(kiosco)</span>{% endif %}
-            </td>
-            <td style="color:#888; font-size:12px;">{{ mov.observaciones or '—' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+  <!-- Columna derecha: Historial -->
+  <div class="col-md-9">
+    <div class="card">
+      <div class="card-header" style="background:#fff; border-bottom:1px solid #eee;">
+        <span style="font-weight:600; color:#0b4f6c;">
+          <i class="bi bi-clock-history"></i> Historial de movimientos
+        </span>
+      </div>
+      <div class="card-body p-0">
+        {% if movimientos %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead style="background:#f0f8fc; font-size:13px;">
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Usuario</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+            <tbody style="font-size:13px;">
+              {% for mov in movimientos %}
+              <tr>
+                <td style="white-space:nowrap; font-size:12px;">{{ mov.fecha_hora }}</td>
+                <td>
+                  {% if mov.tipo == 'ENTRADA' %}
+                    <span class="badge bg-success">ENTRADA</span>
+                  {% else %}
+                    <span class="badge bg-danger">SALIDA</span>
+                  {% endif %}
+                </td>
+                <td><strong>{{ mov.cantidad }}</strong></td>
+                <td style="font-size:12px;">
+                  {{ mov.nombre_usuario or 'Kiosco' }}
+                  {% if mov.modo_kiosco %}<span style="font-size:10px; color:#888;">(kiosco)</span>{% endif %}
+                </td>
+                <td style="color:#888; font-size:12px;">{{ mov.observaciones or '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center" style="color:#aaa;">
+          <i class="bi bi-clock-history" style="font-size:32px;"></i>
+          <p class="mt-2">Sin movimientos registrados.</p>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    {% else %}
-    <div class="p-4 text-center" style="color:#aaa;">
-      <i class="bi bi-clock-history" style="font-size:32px;"></i>
-      <p class="mt-2">Sin movimientos registrados.</p>
-    </div>
-    {% endif %}
   </div>
 </div>
 
