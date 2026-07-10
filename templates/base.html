@@ -351,12 +351,6 @@
     <a class="nav-link {% if request.endpoint == 'usuarios' %}active{% endif %}" href="{{ url_for('usuarios') }}" onclick="closeSidebarMobile()">
       <i class="bi bi-person-gear"></i> Usuarios
     </a>
-    <a class="nav-link {% if request.endpoint == 'exportar' %}active{% endif %}" href="{{ url_for('exportar') }}" onclick="closeSidebarMobile()">
-      <i class="bi bi-file-earmark-excel"></i> Exportar
-    </a>
-    <a class="nav-link {% if request.endpoint == 'importar' %}active{% endif %}" href="{{ url_for('importar') }}" onclick="closeSidebarMobile()">
-      <i class="bi bi-file-earmark-arrow-up"></i> Importar
-    </a>
     {% endif %}
     <hr>
   </nav>
