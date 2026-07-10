@@ -14,11 +14,13 @@
       min-height: 100vh; background-color: var(--brand-color);
       width: var(--sidebar-width); position: fixed; top: 0; left: 0; z-index: 200;
       padding-top: 20px; transition: transform 0.3s ease; display: flex; flex-direction: column;
+      overflow-y: auto;
     }
     .sidebar .brand {
       color: #fff; font-size: 17px; font-weight: 700;
       padding: 0 20px 16px; border-bottom: 1px solid var(--brand-light);
       margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+      position: sticky; top: 0; background: var(--brand-color); z-index: 1;
     }
     .sidebar .nav-link {
       color: #cce7f0; padding: 10px 20px; font-size: 14px;
