@@ -589,6 +589,14 @@ def editar_articulo(id_articulo):
             request.form.get('stock_actual', 0),
             id_articulo
         ))
+        # Generar alerta si el stock editado queda bajo el mínimo
+        nuevo_stock = int(request.form.get('stock_actual', 0))
+        nuevo_minimo = int(request.form.get('stock_minimo', 5))
+        if nuevo_stock <= nuevo_minimo:
+            db.execute('''
+                INSERT INTO alertas (id_articulo, tipo_alerta)
+                VALUES (%s, %s)
+            ''', (id_articulo, 'STOCK_MINIMO'))
         db.commit()
         db.close()
         flash('Artículo actualizado correctamente.', 'success')

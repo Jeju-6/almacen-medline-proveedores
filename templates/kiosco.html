@@ -379,7 +379,7 @@
     const motivoRetira = document.getElementById('motivoRetira').value.trim();
     const obsExtra = document.getElementById('observaciones').value.trim();
     const observacionesCompletas = [
-      `Retira: ${nombreRetira}`,
+      tipoSeleccionado === 'SALIDA' ? `Retira: ${nombreRetira}` : `Agrega: ${nombreRetira}`,
       areaRetira ? `Área: ${areaRetira}` : '',
       motivoRetira ? `Motivo: ${motivoRetira}` : '',
       obsExtra ? obsExtra : ''
