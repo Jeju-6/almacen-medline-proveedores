@@ -108,12 +108,13 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'dqhubredptxbabur'
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'almacen.medline.alertas@gmail.com')
 mail = Mail(app)
 
-def enviar_alerta_correo(articulo, nuevo_stock, db):
+def enviar_alerta_correo(articulo, nuevo_stock):
     try:
-        admin = db.execute(
+        db2 = get_db()
+        admin = db2.execute(
             "SELECT * FROM usuarios WHERE rol='admin' AND activo=1"
         ).fetchone()
-        proveedor_usuario = db.execute('''
+        proveedor_usuario = db2.execute('''
             SELECT u.* FROM usuarios u
             JOIN articulos art ON u.id_proveedor = art.id_proveedor
             WHERE art.id_articulo = %s AND u.rol = 'proveedor' AND u.activo = 1
@@ -137,6 +138,8 @@ def enviar_alerta_correo(articulo, nuevo_stock, db):
                     destinatarios.append(correo_extra)
         except:
             pass
+
+        db2.close()
 
         if destinatarios:
             msg = Message(
@@ -491,7 +494,7 @@ def registrar_movimiento():
                     destinatarios.append(proveedor_usuario['email'])
             # Correo adicional de configuración
             try:
-                enviar_alerta_correo(articulo, nuevo_stock, db)
+                enviar_alerta_correo(articulo, nuevo_stock)
             except:
                 pass
 
@@ -665,7 +668,7 @@ def editar_articulo(id_articulo):
         if nuevo_stock_edit <= nuevo_minimo_edit:
             art = db.execute('SELECT * FROM articulos WHERE id_articulo=%s', (id_articulo,)).fetchone()
             if art:
-                enviar_alerta_correo(art, nuevo_stock_edit, db)
+                enviar_alerta_correo(art, nuevo_stock_edit)
 
         db.commit()
         db.close()
@@ -2056,7 +2059,7 @@ def scan_registrar():
     if nuevo_stock <= articulo['stock_minimo']:
         db.execute('INSERT INTO alertas (id_articulo, tipo_alerta) VALUES (%s, %s)',
                    (articulo['id_articulo'], 'STOCK_MINIMO'))
-        enviar_alerta_correo(articulo, nuevo_stock, db)
+        enviar_alerta_correo(articulo, nuevo_stock)
     
     # Resolver alertas automaticamente si el stock subio sobre el minimo
     if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
