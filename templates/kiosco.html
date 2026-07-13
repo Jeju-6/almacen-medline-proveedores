@@ -136,6 +136,7 @@
 <script>
   let codigoDetectado = '';
   let stockActual = 0;
+  let articuloUnidad = '';
   let tipoSeleccionado = 'SALIDA';
   let html5QrCode = null;
   let camaraActiva = false;
@@ -297,6 +298,7 @@
       .then(data => {
         if (data.found) {
           stockActual = data.stock_actual;
+          articuloUnidad = data.unidad_medida;
           document.getElementById('articuloNombre').textContent = data.nombre;
           document.getElementById('articuloStock').textContent = 'Stock actual: ' + data.stock_actual + ' ' + data.unidad_medida;
           if (data.ubicacion) {
@@ -310,6 +312,7 @@
           document.getElementById('formExtra').style.display = 'none';
           mostrarStatus('Artículo no encontrado en el sistema.', 'error');
         }
+        
       });
   }
 

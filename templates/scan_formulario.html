@@ -172,6 +172,7 @@
   let tipoSeleccionado = 'SALIDA';
   const codigoQR = '{{ articulo.codigo_qr }}';
   const stockActual = {{ articulo.stock_actual }};
+  const articuloUnidad = '{{ articulo.unidad_medida }}';
 
   function seleccionarTipo(tipo) {
     tipoSeleccionado = tipo;
@@ -191,7 +192,11 @@
       document.getElementById('nombreRetira').focus();
       return;
     }
-    if (tipoSeleccionado === 'SALIDA' && stockActual > 0) {
+    if (tipoSeleccionado === 'SALIDA') {
+      if (cantidad > stockActual) {
+        mostrarStatus(`Stock insuficiente. Solo hay ${stockActual} ${articuloUnidad} disponibles.`, 'error');
+        return;
+      }
       const porcentaje = (cantidad / stockActual) * 100;
       if (porcentaje >= 50) {
         const confirmar = confirm(`⚠️ Estás sacando ${cantidad} de ${stockActual} unidades (${Math.round(porcentaje)}% del stock).\n\n¿Confirmas esta salida?`);
