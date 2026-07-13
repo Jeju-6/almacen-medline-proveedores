@@ -212,6 +212,7 @@ def kiosco():
 
 @app.route('/dashboard')
 @login_requerido
+@cache.cached(timeout=30, key_prefix=lambda: f'dashboard_{session.get("usuario_id")}')
 def dashboard():
     db = get_db()
     rol = session.get('rol')
@@ -373,6 +374,7 @@ def nuevo_articulo():
 
 @app.route('/registrar_movimiento', methods=['POST'])
 def registrar_movimiento():
+    cache.clear()
     data = request.get_json()
     codigo_qr = data.get('codigo_qr')
     tipo = data.get('tipo')
@@ -651,6 +653,7 @@ def desactivar_articulo(id_articulo):
 
 @app.route('/alertas')
 @login_requerido
+@cache.cached(timeout=30, key_prefix=lambda: f'alertas_{session.get("usuario_id")}')
 def alertas():
     db = get_db()
     rol = session.get('rol')
@@ -1802,6 +1805,7 @@ def configuracion():
 
 @app.route('/historial')
 @login_requerido
+@cache.cached(timeout=60, key_prefix=lambda: f'historial_{session.get("usuario_id")}')
 def historial():
     db = get_db()
     rol = session.get('rol')
@@ -1964,6 +1968,7 @@ def scan_qr(codigo):
 
 @app.route('/scan/registrar', methods=['POST'])
 def scan_registrar():
+    cache.clear()
     data = request.get_json()
     codigo_qr = data.get('codigo_qr')
     tipo = data.get('tipo', 'SALIDA')
