@@ -108,6 +108,74 @@ app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'dqhubredptxbabur'
 app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'almacen.medline.alertas@gmail.com')
 mail = Mail(app)
 
+def enviar_alerta_correo(articulo, nuevo_stock, db):
+    try:
+        admin = db.execute(
+            "SELECT * FROM usuarios WHERE rol='admin' AND activo=1"
+        ).fetchone()
+        proveedor_usuario = db.execute('''
+            SELECT u.* FROM usuarios u
+            JOIN articulos art ON u.id_proveedor = art.id_proveedor
+            WHERE art.id_articulo = %s AND u.rol = 'proveedor' AND u.activo = 1
+            LIMIT 1
+        ''', (articulo['id_articulo'],)).fetchone()
+
+        destinatarios = []
+        if admin and admin['email']:
+            destinatarios.append(admin['email'])
+        if proveedor_usuario and proveedor_usuario['email']:
+            if proveedor_usuario['email'] not in destinatarios:
+                destinatarios.append(proveedor_usuario['email'])
+
+        try:
+            import json
+            if os.path.exists('config.json'):
+                with open('config.json', 'r') as f:
+                    cfg = json.load(f)
+                correo_extra = cfg.get('correo_alertas', '')
+                if correo_extra and correo_extra not in destinatarios:
+                    destinatarios.append(correo_extra)
+        except:
+            pass
+
+        if destinatarios:
+            msg = Message(
+                subject=f'⚠️ Alerta de stock bajo - {articulo["nombre"]}',
+                recipients=destinatarios,
+                html=f'''
+                <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
+                  <div style="background:#0b4f6c;padding:20px;border-radius:10px 10px 0 0;">
+                    <h2 style="color:#fff;margin:0;">⚠️ Alerta de Stock Bajo</h2>
+                    <p style="color:#cce7f0;margin:5px 0 0;">Sistema de Almacén Medline</p>
+                  </div>
+                  <div style="background:#fff;padding:24px;border:1px solid #eee;border-radius:0 0 10px 10px;">
+                    <p>El siguiente artículo ha alcanzado su stock mínimo:</p>
+                    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+                      <tr style="background:#f0f8fc;">
+                        <td style="padding:10px;font-weight:bold;">Artículo</td>
+                        <td style="padding:10px;">{articulo["nombre"]}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px;font-weight:bold;">Número de parte</td>
+                        <td style="padding:10px;">{articulo["num_parte"]}</td>
+                      </tr>
+                      <tr style="background:#f0f8fc;">
+                        <td style="padding:10px;font-weight:bold;">Stock actual</td>
+                        <td style="padding:10px;color:#dc3545;font-weight:bold;">{nuevo_stock}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:10px;font-weight:bold;">Stock mínimo</td>
+                        <td style="padding:10px;">{articulo["stock_minimo"]}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+                '''
+            )
+            mail.send(msg)
+    except Exception as e:
+        print(f"Error enviando correo: {e}")
+
 @app.context_processor
 def inject_now():
     alertas_count = 0
@@ -423,12 +491,7 @@ def registrar_movimiento():
                     destinatarios.append(proveedor_usuario['email'])
             # Correo adicional de configuración
             try:
-                if os.path.exists('config.json'):
-                    with open('config.json', 'r') as f:
-                        cfg = json.load(f)
-                    correo_extra = cfg.get('correo_alertas', '')
-                    if correo_extra and correo_extra not in destinatarios:
-                        destinatarios.append(correo_extra)
+                enviar_alerta_correo(articulo, nuevo_stock, db)
             except:
                 pass
 
@@ -596,6 +659,14 @@ def editar_articulo(id_articulo):
                 INSERT INTO alertas (id_articulo, tipo_alerta)
                 VALUES (%s, %s)
             ''', (id_articulo, 'STOCK_MINIMO'))
+
+        nuevo_stock_edit = int(request.form.get('stock_actual', 0))
+        nuevo_minimo_edit = int(request.form.get('stock_minimo', 5))
+        if nuevo_stock_edit <= nuevo_minimo_edit:
+            art = db.execute('SELECT * FROM articulos WHERE id_articulo=%s', (id_articulo,)).fetchone()
+            if art:
+                enviar_alerta_correo(art, nuevo_stock_edit, db)
+
         db.commit()
         db.close()
         flash('Artículo actualizado correctamente.', 'success')
@@ -1985,6 +2056,7 @@ def scan_registrar():
     if nuevo_stock <= articulo['stock_minimo']:
         db.execute('INSERT INTO alertas (id_articulo, tipo_alerta) VALUES (%s, %s)',
                    (articulo['id_articulo'], 'STOCK_MINIMO'))
+        enviar_alerta_correo(articulo, nuevo_stock, db)
     
     # Resolver alertas automaticamente si el stock subio sobre el minimo
     if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
