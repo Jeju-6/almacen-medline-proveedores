@@ -166,12 +166,17 @@ def solo_admin(f):
     return decorated
 
 # ─── RUTAS DE AUTENTICACIÓN ───────────────────────────────────────────────────
+@app.route('/bienvenida')
+def bienvenida():
+    if 'usuario_id' in session:
+        return redirect(url_for('dashboard'))
+    return render_template('bienvenida.html')
 
 @app.route('/')
 def index():
     if 'usuario_id' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    return redirect(url_for('bienvenida'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
