@@ -18,7 +18,8 @@
       <div class="d-flex align-items-center gap-3 mb-2">
         {% if prov.logo %}
           <img src="{{ url_for('static', filename='uploads/' + prov.logo) }}"
-               style="width:52px; height:52px; object-fit:contain; border-radius:8px; border:1px solid #eee; padding:3px;">
+               style="width:52px; height:52px; object-fit:contain; border-radius:8px; border:1px solid #eee; padding:3px;"
+               loading="lazy">
         {% else %}
           <div style="width:52px; height:52px; background:#e8f4f8; border-radius:50%;
                       display:flex; align-items:center; justify-content:center;">
