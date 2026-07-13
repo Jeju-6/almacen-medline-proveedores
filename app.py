@@ -1978,6 +1978,13 @@ def scan_registrar():
     if nuevo_stock <= articulo['stock_minimo']:
         db.execute('INSERT INTO alertas (id_articulo, tipo_alerta) VALUES (%s, %s)',
                    (articulo['id_articulo'], 'STOCK_MINIMO'))
+    
+    # Resolver alertas automaticamente si el stock subio sobre el minimo
+    if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
+        db.execute(
+            "UPDATE alertas SET resuelta=1, vista=1 WHERE id_articulo=%s AND resuelta=0",
+            (articulo['id_articulo'],)
+        )
 
     db.commit()
     db.close()
