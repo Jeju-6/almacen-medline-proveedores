@@ -103,10 +103,9 @@ app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secret
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
-app.config['MAIL_USERNAME'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
-app.config['MAIL_PASSWORD'] = os.environ.get('dqhubredptxbabur', '')
-app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('almacen.medline.alertas@gmail.com', '')
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'almacen.medline.alertas@gmail.com')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'dqhubredptxbabur')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'almacen.medline.alertas@gmail.com')
 mail = Mail(app)
 
 @app.context_processor
