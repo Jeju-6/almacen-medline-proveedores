@@ -1,4 +1,5 @@
 from flask_caching import Cache
+from flask_compress import Compress
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mail import Mail, Message
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -97,6 +98,7 @@ app = Flask(__name__)
 app.config['CACHE_TYPE'] = 'SimpleCache'
 app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutos
 cache = Cache(app)
+Compress(app)
 app.secret_key = os.environ.get('SECRET_KEY', 'medline-almacen-2024-clave-secreta')
 
 # ─── CONFIGURACIÓN DE CORREO ──────────────────────────────────────────────────
