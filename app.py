@@ -473,16 +473,11 @@ def registrar_movimiento():
                 mail.send(msg)
         except Exception as e:
             print(f"Error enviando correo: {e}")
-# Resolver alertas si stock subió sobre el mínimo
+
+    # Resolver alertas automaticamente si el stock subio sobre el minimo
     if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
         db.execute(
-            'UPDATE alertas SET resuelta=1 WHERE id_articulo=%s AND resuelta=0',
-            (articulo['id_articulo'],)
-        )
-    # Resolver alertas automáticamente si el stock subió sobre el mínimo
-    if tipo == 'ENTRADA' and nuevo_stock > articulo['stock_minimo']:
-        db.execute(
-            'UPDATE alertas SET resuelta=1 WHERE id_articulo=%s AND resuelta=0',
+            "UPDATE alertas SET resuelta=1, vista=1 WHERE id_articulo=%s AND resuelta=0",
             (articulo['id_articulo'],)
         )
     db.commit()
