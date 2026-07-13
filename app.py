@@ -109,75 +109,10 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'almacen.med
 mail = Mail(app)
 
 def enviar_alerta_correo(articulo, nuevo_stock):
-    try:
-        db2 = get_db()
-        admin = db2.execute(
-            "SELECT * FROM usuarios WHERE rol='admin' AND activo=1"
-        ).fetchone()
-        proveedor_usuario = db2.execute('''
-            SELECT u.* FROM usuarios u
-            JOIN articulos art ON u.id_proveedor = art.id_proveedor
-            WHERE art.id_articulo = %s AND u.rol = 'proveedor' AND u.activo = 1
-            LIMIT 1
-        ''', (articulo['id_articulo'],)).fetchone()
-
-        destinatarios = []
-        if admin and admin['email']:
-            destinatarios.append(admin['email'])
-        if proveedor_usuario and proveedor_usuario['email']:
-            if proveedor_usuario['email'] not in destinatarios:
-                destinatarios.append(proveedor_usuario['email'])
-
-        try:
-            import json
-            if os.path.exists('config.json'):
-                with open('config.json', 'r') as f:
-                    cfg = json.load(f)
-                correo_extra = cfg.get('correo_alertas', '')
-                if correo_extra and correo_extra not in destinatarios:
-                    destinatarios.append(correo_extra)
-        except:
-            pass
-
-        db2.close()
-
-        if destinatarios:
-            msg = Message(
-                subject=f'⚠️ Alerta de stock bajo - {articulo["nombre"]}',
-                recipients=destinatarios,
-                html=f'''
-                <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;">
-                  <div style="background:#0b4f6c;padding:20px;border-radius:10px 10px 0 0;">
-                    <h2 style="color:#fff;margin:0;">⚠️ Alerta de Stock Bajo</h2>
-                    <p style="color:#cce7f0;margin:5px 0 0;">Sistema de Almacén Medline</p>
-                  </div>
-                  <div style="background:#fff;padding:24px;border:1px solid #eee;border-radius:0 0 10px 10px;">
-                    <p>El siguiente artículo ha alcanzado su stock mínimo:</p>
-                    <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-                      <tr style="background:#f0f8fc;">
-                        <td style="padding:10px;font-weight:bold;">Artículo</td>
-                        <td style="padding:10px;">{articulo["nombre"]}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:10px;font-weight:bold;">Número de parte</td>
-                        <td style="padding:10px;">{articulo["num_parte"]}</td>
-                      </tr>
-                      <tr style="background:#f0f8fc;">
-                        <td style="padding:10px;font-weight:bold;">Stock actual</td>
-                        <td style="padding:10px;color:#dc3545;font-weight:bold;">{nuevo_stock}</td>
-                      </tr>
-                      <tr>
-                        <td style="padding:10px;font-weight:bold;">Stock mínimo</td>
-                        <td style="padding:10px;">{articulo["stock_minimo"]}</td>
-                      </tr>
-                    </table>
-                  </div>
-                </div>
-                '''
-            )
-            mail.send(msg)
-    except Exception as e:
-        print(f"Error enviando correo: {e}")
+    # Correo temporalmente desactivado - Railway bloquea SMTP
+    # Se activará con Resend API (HTTPS) próximamente
+    print(f"[ALERTA] Stock bajo: {articulo['nombre']} - Stock: {nuevo_stock}")
+    pass
 
 @app.context_processor
 def inject_now():
@@ -638,9 +573,9 @@ def editar_articulo(id_articulo):
                 imagen_filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], imagen_filename))
         db.execute('''
-            UPDATE articulos SET num_parte=?, nombre=?, descripcion=?, unidad_medida=?,
-                stock_minimo=?, link_compra=?, imagen=?, id_proveedor=?, ubicacion=?, stock_actual=?
-            WHERE id_articulo=?
+            UPDATE articulos SET num_parte=%s, nombre=%s, descripcion=%s, unidad_medida=%s,
+                stock_minimo=%s, link_compra=%s, imagen=%s, id_proveedor=%s, ubicacion=%s, stock_actual=%s
+            WHERE id_articulo=%s
         ''', (
             request.form['num_parte'],
             request.form['nombre'],
