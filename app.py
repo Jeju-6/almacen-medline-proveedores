@@ -1887,7 +1887,7 @@ def historial():
         fecha_ini=fecha_ini,
         fecha_fin=fecha_fin,
         tipo=tipo,
-        id_prov_filtro=id_prov_filtro
+        id_prov_filtro=id_prov_filtro,
         pagina=pagina,
         total_paginas=(total + por_pagina - 1) // por_pagina,
         total=total
