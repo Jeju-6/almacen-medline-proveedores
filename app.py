@@ -1042,13 +1042,13 @@ def exportar_movimientos():
     conditions = []
 
     if rol != 'admin':
-        conditions.append('art.id_proveedor = %s')
+        conditions.append('art.id_proveedor = ?')
         params.append(id_proveedor)
     if fecha_ini:
-        conditions.append('DATE(m.fecha_hora) >= %s')
+        conditions.append('DATE(m.fecha_hora) >= ?')
         params.append(fecha_ini)
     if fecha_fin:
-        conditions.append('DATE(m.fecha_hora) <= %s')
+        conditions.append('DATE(m.fecha_hora) <= ?')
         params.append(fecha_fin)
 
     if conditions:
@@ -1845,20 +1845,20 @@ def historial():
     conditions = []
 
     if rol != 'admin':
-        conditions.append('art.id_proveedor = %s')
+        conditions.append('art.id_proveedor = ?')
         params.append(id_proveedor)
     elif id_prov_filtro:
-        conditions.append('art.id_proveedor = %s')
+        conditions.append('art.id_proveedor = ?')
         params.append(id_prov_filtro)
 
     if fecha_ini:
-        conditions.append('DATE(m.fecha_hora) >= %s')
+        conditions.append('DATE(m.fecha_hora) >= ?')
         params.append(fecha_ini)
     if fecha_fin:
-        conditions.append('DATE(m.fecha_hora) <= %s')
+        conditions.append('DATE(m.fecha_hora) <= ?')
         params.append(fecha_fin)
     if tipo:
-        conditions.append('m.tipo = %s')
+        conditions.append('m.tipo = ?')
         params.append(tipo)
 
     pagina = request.args.get('pagina', 1, type=int)
