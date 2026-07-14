@@ -167,4 +167,35 @@
     });
   });
 </script>
+<!-- Paginación -->
+{% if total_paginas > 1 %}
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div style="font-size:13px; color:#888;">
+    Mostrando {{ (pagina-1)*25 + 1 }}-{{ [pagina*25, total] | min }} de {{ total }} movimientos
+  </div>
+  <nav>
+    <ul class="pagination pagination-sm mb-0">
+      {% if pagina > 1 %}
+      <li class="page-item">
+        <a class="page-link" href="?pagina={{ pagina-1 }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&tipo={{ tipo }}&id_proveedor={{ id_prov_filtro }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      {% for p in range(1, total_paginas+1) %}
+      <li class="page-item {% if p == pagina %}active{% endif %}">
+        <a class="page-link" href="?pagina={{ p }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&tipo={{ tipo }}&id_proveedor={{ id_prov_filtro }}">{{ p }}</a>
+      </li>
+      {% endfor %}
+      {% if pagina < total_paginas %}
+      <li class="page-item">
+        <a class="page-link" href="?pagina={{ pagina+1 }}&fecha_ini={{ fecha_ini }}&fecha_fin={{ fecha_fin }}&tipo={{ tipo }}&id_proveedor={{ id_prov_filtro }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endif %}
 {% endblock %}

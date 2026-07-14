@@ -1861,12 +1861,19 @@ def historial():
         conditions.append('m.tipo = ?')
         params.append(tipo)
 
+    pagina = request.args.get('pagina', 1, type=int)
+    por_pagina = 25
+
+    # Contar total
+    count_query = 'SELECT COUNT(*) FROM movimientos m JOIN articulos art ON m.id_articulo = art.id_articulo'
     if conditions:
-        query += ' WHERE ' + ' AND '.join(conditions)
+        count_query += ' WHERE ' + ' AND '.join(conditions)
+    total = db.execute(count_query, params).fetchone()[0]
+
     query += ' ORDER BY m.fecha_hora DESC'
+    query += f' LIMIT {por_pagina} OFFSET {(pagina-1)*por_pagina}'
 
     movimientos = db.execute(query, params).fetchall()
-    proveedores = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall() if rol == 'admin' else []
 
     total_entradas = sum(m['cantidad'] for m in movimientos if m['tipo'] == 'ENTRADA')
     total_salidas = sum(m['cantidad'] for m in movimientos if m['tipo'] == 'SALIDA')
@@ -1881,6 +1888,9 @@ def historial():
         fecha_fin=fecha_fin,
         tipo=tipo,
         id_prov_filtro=id_prov_filtro
+        pagina=pagina,
+        total_paginas=(total + por_pagina - 1) // por_pagina,
+        total=total
     )
 
 @app.route('/importar/sql', methods=['GET', 'POST'])
