@@ -1822,7 +1822,6 @@ def configuracion():
 
 @app.route('/historial')
 @login_requerido
-@cache.cached(timeout=60, key_prefix=lambda: f'historial_{session.get("usuario_id")}')
 def historial():
     db = get_db()
     rol = session.get('rol')
