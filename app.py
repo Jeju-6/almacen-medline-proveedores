@@ -695,6 +695,7 @@ def resolver_alerta(id_alerta):
 @app.route('/usuarios')
 @login_requerido
 @solo_admin
+@cache.cached(timeout=300, key_prefix='usuarios')
 def usuarios():
     db = get_db()
     lista = db.execute('''
