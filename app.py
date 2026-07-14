@@ -311,26 +311,42 @@ def dashboard():
 
 @app.route('/articulos')
 @login_requerido
-@cache.cached(timeout=60, key_prefix=lambda: f'articulos_{session.get("usuario_id")}')
 def articulos():
     db = get_db()
     rol = session.get('rol')
     id_proveedor = session.get('id_proveedor')
+    pagina = request.args.get('pagina', 1, type=int)
+    por_pagina = 20
+
     if rol == 'admin':
+        total = db.execute('SELECT COUNT(*) FROM articulos WHERE activo=1').fetchone()[0]
         lista = db.execute('''
             SELECT a.*, p.nombre as nombre_proveedor
             FROM articulos a JOIN proveedores p ON a.id_proveedor = p.id_proveedor
             WHERE a.activo = 1 ORDER BY a.nombre
-        ''').fetchall()
+            LIMIT %s OFFSET %s
+        ''', (por_pagina, (pagina-1)*por_pagina)).fetchall()
     else:
+        total = db.execute('SELECT COUNT(*) FROM articulos WHERE activo=1 AND id_proveedor=%s', (id_proveedor,)).fetchone()[0]
         lista = db.execute('''
             SELECT a.*, p.nombre as nombre_proveedor
             FROM articulos a JOIN proveedores p ON a.id_proveedor = p.id_proveedor
-            WHERE a.activo = 1 AND a.id_proveedor = ? ORDER BY a.nombre
-        ''', (id_proveedor,)).fetchall()
+            WHERE a.activo = 1 AND a.id_proveedor = %s ORDER BY a.nombre
+            LIMIT %s OFFSET %s
+        ''', (id_proveedor, por_pagina, (pagina-1)*por_pagina)).fetchall()
+
     proveedores = db.execute('SELECT * FROM proveedores WHERE activo=1').fetchall()
     db.close()
-    return render_template('articulos.html', articulos=lista, proveedores=proveedores)
+    
+    total_paginas = (total + por_pagina - 1) // por_pagina
+    
+    return render_template('articulos.html', 
+        articulos=lista, 
+        proveedores=proveedores,
+        pagina=pagina,
+        total_paginas=total_paginas,
+        total=total
+    )
 
 @app.route('/articulos/nuevo', methods=['GET', 'POST'])
 @login_requerido
