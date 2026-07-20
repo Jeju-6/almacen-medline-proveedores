@@ -6,9 +6,29 @@
 {% endblock %}
 
 {% block content %}
-<h4 style="color:#0b4f6c; font-weight:700; margin-bottom:20px;">
-  <i class="bi bi-speedometer2"></i> Dashboard
-</h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
+      <i class="bi bi-speedometer2"></i> Dashboard
+    </h4>
+    <div style="font-size:14px; color:#888; margin-top:4px;">
+      {% set hora = now.hour %}
+      {% if hora < 12 %}
+        🌅 Buenos días, {{ session.nombre.split()[0] }}
+      {% elif hora < 19 %}
+        ☀️ Buenas tardes, {{ session.nombre.split()[0] }}
+      {% else %}
+        🌙 Buenas noches, {{ session.nombre.split()[0] }}
+      {% endif %}
+      — {{ now.strftime('%A %d de %B, %Y') }}
+    </div>
+  </div>
+  {% if alertas|length > 0 %}
+  <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:10px 16px; font-size:13px; color:#dc3545;">
+    <i class="bi bi-bell-fill"></i> Tienes <strong>{{ alertas|length }}</strong> alerta(s) activa(s)
+  </div>
+  {% endif %}
+</div>
 
 <!-- Gráficas arriba -->
 <div class="row g-4 mb-4">
