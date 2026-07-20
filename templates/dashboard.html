@@ -11,16 +11,8 @@
     <h4 style="color:#0b4f6c; font-weight:700; margin:0;">
       <i class="bi bi-speedometer2"></i> Dashboard
     </h4>
-    <div style="font-size:14px; color:#888; margin-top:4px;">
-      {% set hora = now.hour %}
-      {% if hora < 12 %}
-        🌅 Buenos días, {{ session.nombre.split()[0] }}
-      {% elif hora < 19 %}
-        ☀️ Buenas tardes, {{ session.nombre.split()[0] }}
-      {% else %}
-        🌙 Buenas noches, {{ session.nombre.split()[0] }}
-      {% endif %}
-      — {{ now.strftime('%A %d de %B, %Y') }}
+    <div style="font-size:14px; color:#888; margin-top:4px;" id="saludoPersonal">
+      Bienvenido, {{ session.nombre.split()[0] }}
     </div>
   </div>
   {% if alertas|length > 0 %}
@@ -218,6 +210,21 @@
 
 {% block extra_js %}
 <script>
+// Saludo con hora local del dispositivo
+  const hora = new Date().getHours();
+  const nombre = '{{ session.nombre.split()[0] }}';
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const hoy = new Date();
+  const fechaStr = `${dias[hoy.getDay()]} ${hoy.getDate()} de ${meses[hoy.getMonth()]}, ${hoy.getFullYear()}`;
+  
+  let saludo;
+  if (hora < 12) saludo = `🌅 Buenos días, ${nombre}`;
+  else if (hora < 19) saludo = `☀️ Buenas tardes, ${nombre}`;
+  else saludo = `🌙 Buenas noches, ${nombre}`;
+
+  document.getElementById('saludoPersonal').textContent = `${saludo} — ${fechaStr}`;
+
   const topData = {{ top_consumo_json | tojson }};
   const movData = {{ movimientos_json | tojson }};
 
