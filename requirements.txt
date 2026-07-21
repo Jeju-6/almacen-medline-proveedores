@@ -11,3 +11,4 @@ psycopg2-pool
 python-barcode
 flask-caching
 flask-compress
+pyodbc

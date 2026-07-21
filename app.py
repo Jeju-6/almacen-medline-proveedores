@@ -19,28 +19,29 @@ DB_CONFIG = {
 import psycopg2
 import psycopg2.extras
 from psycopg2 import pool as pg_pool
-
-# Pool de conexiones global
-connection_pool = None
+import pyodbc
 
 def init_pool():
-    global connection_pool
-    connection_pool = pg_pool.ThreadedConnectionPool(
-        minconn=2,
-        maxconn=10,
-        **DB_CONFIG
-    )
+    pass  # Azure SQL usa pyodbc sin pool
+
+# Configuración Azure SQL
+AZURE_CONN_STR = (
+    'DRIVER={ODBC Driver 17 for SQL Server};'
+    f'Server=tcp:medline-sqlserver.database.windows.net,1433;'
+    f'Database=almacen_proveedores_medline;'
+    f'Uid={os.environ.get("AZURE_USER", "adminmedline")};'
+    f'Pwd={os.environ.get("AZURE_PASSWORD", "Medline2024!")};'
+    'Encrypt=yes;'
+    'TrustServerCertificate=no;'
+    'Connection Timeout=30;'
+)
 
 def get_db():
-    global connection_pool
-    if connection_pool is None:
-        init_pool()
-    
-    conn = connection_pool.getconn()
+    conn = pyodbc.connect(AZURE_CONN_STR)
 
     class RowWrapper:
-        def __init__(self, row):
-            self._row = dict(row) if row else {}
+        def __init__(self, row, columns):
+            self._row = dict(zip(columns, row)) if row else {}
             self._keys = list(self._row.keys())
         def __getitem__(self, key):
             if isinstance(key, int):
@@ -62,35 +63,45 @@ def get_db():
     class CursorWrapper:
         def __init__(self, cursor):
             self._cursor = cursor
+            self._columns = []
         def fetchone(self):
             row = self._cursor.fetchone()
-            return RowWrapper(row) if row else None
+            if row is None:
+                return None
+            cols = [d[0] for d in self._cursor.description] if self._cursor.description else self._columns
+            return RowWrapper(row, cols)
         def fetchall(self):
-            return [RowWrapper(r) for r in self._cursor.fetchall()]
+            rows = self._cursor.fetchall()
+            cols = [d[0] for d in self._cursor.description] if self._cursor.description else self._columns
+            return [RowWrapper(r, cols) for r in rows]
         def __iter__(self):
+            cols = [d[0] for d in self._cursor.description] if self._cursor.description else self._columns
             for row in self._cursor:
-                yield RowWrapper(row)
+                yield RowWrapper(row, cols)
 
     class DBWrapper:
         def __init__(self, connection):
             self.conn = connection
-            self._cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            self._cursor = connection.cursor()
         def execute(self, query, params=None):
-            # Crear nuevo cursor para cada consulta
-            cursor = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            query = query.replace('?', '%s')
+            # Convertir %s a ? para SQL Server
+            query = query.replace('%s', '?')
+            # Convertir funciones PostgreSQL a SQL Server
+            query = query.replace('CURRENT_TIMESTAMP', 'GETDATE()')
+            query = query.replace('to_char(fecha_hora,', 'FORMAT(fecha_hora,')
+            query = query.replace("'MM/YYYY'", "'MM/yyyy'")
             if params:
-                cursor.execute(query, params)
+                self._cursor.execute(query, params)
             else:
-                cursor.execute(query)
-            return CursorWrapper(cursor)
+                self._cursor.execute(query)
+            return CursorWrapper(self._cursor)
         def executescript(self, script):
             self._cursor.execute(script)
         def commit(self):
             self.conn.commit()
         def close(self):
             self._cursor.close()
-            connection_pool.putconn(self.conn)
+            self.conn.close()
 
     return DBWrapper(conn)
 app = Flask(__name__)
@@ -1861,7 +1872,7 @@ def historial():
         params.append(tipo)
 
     pagina = request.args.get('pagina', 1, type=int)
-    por_pagina = 25
+    por_pagina = 10
 
     # Contar total
     count_query = 'SELECT COUNT(*) FROM movimientos m JOIN articulos art ON m.id_articulo = art.id_articulo'
