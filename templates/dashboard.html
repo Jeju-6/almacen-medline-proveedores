@@ -211,19 +211,20 @@
 {% block extra_js %}
 <script>
 // Saludo con hora local del dispositivo
+document.addEventListener('DOMContentLoaded', function() {
   const hora = new Date().getHours();
   const nombre = '{{ session.nombre.split()[0] }}';
   const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const hoy = new Date();
   const fechaStr = `${dias[hoy.getDay()]} ${hoy.getDate()} de ${meses[hoy.getMonth()]}, ${hoy.getFullYear()}`;
-  
   let saludo;
   if (hora < 12) saludo = `🌅 Buenos días, ${nombre}`;
   else if (hora < 19) saludo = `☀️ Buenas tardes, ${nombre}`;
   else saludo = `🌙 Buenas noches, ${nombre}`;
-
-  document.getElementById('saludoPersonal').textContent = `${saludo} — ${fechaStr}`;
+  const elSaludo = document.getElementById('saludoPersonal');
+  if (elSaludo) elSaludo.textContent = `${saludo} — ${fechaStr}`;
+});
 
   const topData = {{ top_consumo_json | tojson }};
   const movData = {{ movimientos_json | tojson }};
